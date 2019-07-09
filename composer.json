@@ -1,0 +1,33 @@
+{
+    "name": "Combodo/stripeV3",
+    "type": "project",
+    "description": "Provide SCA compatible Stripe integration.",
+    "keywords": ["payment", "stripe", "sca", "payum"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bruno DA SILVA",
+            "email": "bruno.dasilva@combodo.com"
+        },
+        {
+            "name":     "Payum project",
+            "homepage": "https://payum.forma-pro.com/"
+        },
+        {
+            "name":     "Community contributions",
+            "homepage": "https://github.com/Payum/AuthorizeNetAim/contributors"
+        }
+    ],
+    "require": {
+        "payum/core": "^1.5",
+        "php-http/guzzle6-adapter": "^1.0"
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "autoload": {
+        "psr-4": {
+            "Combodo\\StripeV3": "src/"
+        }
+    }
+}
