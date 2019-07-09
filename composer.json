@@ -27,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Combodo\\StripeV3": "src/"
+            "Combodo\\StripeV3\\": "src/"
         }
     }
 }

@@ -1,12 +1,12 @@
 # Payum gateway : Combodo/StripeV3
 
-This is an **unofficial** :construction: WIP Payum gateway providing an _SCA compatible_ stripe integration.
+This is an **unofficial** & :construction: early WIP :construction: Payum gateway providing an SCA compatible stripe integration.
  
 
 
 ## Developed by Combodo
 
-Combodo is the editor of [iTop](https://www.itophub.io/page/about-itop): the [open source](https://github.com/Combodo/itop) ITSM solution.
+Combodo is the editor of [iTop](https://www.itophub.io/page/about-itop) the [open source](https://github.com/Combodo/itop) ITSM solution.
 
 For the needs of iTop Hub which offer free and [commercial iTop extensions](https://store.itophub.io/en_US/taxons/premium), a stripe integration compatible with the SCA was required.
 
@@ -14,7 +14,7 @@ With no doubt, we opened sourced our development. Please keep in mind that we ar
 
 
 
-This code is inspired by the original stripe gateway but also by [@PyRowMan]() [proof of concept](https://github.com/Payum/Payum/issues/804)
+This code is inspired by the original stripe gateway but also by [@PyRowMan](https://github.com/PyRowMan)'s [proof of concept](https://github.com/Payum/Payum/issues/804#issuecomment-509135558)
 
 
 ## Support
