@@ -13,14 +13,16 @@ use Payum\Core\GatewayFactory;
 
 class StripeV3GatewayFactory extends GatewayFactory
 {
+    const FACTORY_NAME = 'stripe_checkout_v3';
+
     /**
      * {@inheritDoc}
      */
     protected function populateConfig(ArrayObject $config)
     {
         $config->defaults([
-            'payum.factory_name' => 'stripeV3',
-            'payum.factory_title' => 'stripeV3',
+            'payum.factory_name' => static::FACTORY_NAME,
+            'payum.factory_title' => 'Stripe checkout V3',
             'payum.action.capture' => new CaptureAction(),
             'payum.action.authorize' => new AuthorizeAction(),
             'payum.action.refund' => new RefundAction(),
