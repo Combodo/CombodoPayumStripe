@@ -1,6 +1,7 @@
 <?php
 namespace Combodo\StripeV3\Action\Api;
 
+use Combodo\StripeV3\Keys;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\ApiAwareInterface;
 use Payum\Core\ApiAwareTrait;
@@ -13,8 +14,10 @@ abstract class BaseApiAwareAction implements ActionInterface, GatewayAwareInterf
     use GatewayAwareTrait;
     use ApiAwareTrait;
 
+
     public function __construct()
     {
-        $this->apiClass = Api::class;
+        $this->apiClass = Keys::class;
     }
+
 }

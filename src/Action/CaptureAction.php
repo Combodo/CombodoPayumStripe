@@ -3,11 +3,14 @@ namespace Combodo\StripeV3\Action;
 
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
+use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Capture;
 use Payum\Core\Exception\RequestNotSupportedException;
+use Combodo\StripeV3\Request\Api\CreateCharge;
+use Combodo\StripeV3\Request\Api\ObtainToken;
 
-class CaptureAction implements ActionInterface
+class CaptureAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
 
@@ -22,7 +25,21 @@ class CaptureAction implements ActionInterface
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
 
-        throw new \LogicException('Not implemented');
+        if ($model['status']) {
+            return;
+        }
+
+        if ($model['customer']) {
+        } else {
+            if (false == $model['card']) {
+                $obtainToken = new ObtainToken($request->getToken());
+                $obtainToken->setModel($model);
+
+                $this->gateway->execute($obtainToken);
+            }
+        }
+
+        $this->gateway->execute(new CreateCharge($model));
     }
 
     /**
