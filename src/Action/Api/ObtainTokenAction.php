@@ -71,37 +71,16 @@ class ObtainTokenAction implements ActionInterface, GatewayAwareInterface, ApiAw
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
 
-        if ($model['card']) {
-            throw new LogicException('The token has already been set.');
-        }
-
-        $getHttpRequest = new GetHttpRequest();
-        $this->gateway->execute($getHttpRequest);
-        if ($getHttpRequest->method == 'POST' && isset($getHttpRequest->request['stripeToken'])) {
-            $model['card'] = $getHttpRequest->request['stripeToken'];
-
-            return;
-        }
-
-        Stripe::setApiKey($this->keys->getSecretKey());
-
         if (empty($model['session_id'])) {
-            $session = Session::create([
-                'success_url'           => $request->getToken()->getTargetUrl(), //@TODO : could not find any doc about what to use => check if my guess is good
-                'cancel_url'            => $request->getToken()->getAfterUrl(),  //@TODO : could not find any doc about what to use => check if my guess is good
-                'payment_method_types'  => ['card'],
-                'submit_type'           => Session::SUBMIT_TYPE_PAY,
-                'line_items'            => $model['line_items'],
-                'client_reference_id'   => $model['id'], //ie the \Sylius\Component\Payment\Model\Payment::id
-            ]);
+            $session = $this->obtainSession($request, $model);
 
             $model['session_id'] = $session->id;
         }
 
-
         $this->gateway->execute($renderTemplate = new RenderTemplate($this->templateName, array(
             'publishable_key'   => $this->keys->getPublishableKey(),
-            "session_id"        => $session->id,
+            "session_id"        => $model['session_id'],
+            'model'             => $model,
         )));
 
 
@@ -117,5 +96,29 @@ class ObtainTokenAction implements ActionInterface, GatewayAwareInterface, ApiAw
             $request instanceof ObtainToken &&
             $request->getModel() instanceof \ArrayAccess
         ;
+    }
+
+    /**
+     * @param             $request
+     * @param ArrayObject $model
+     *
+     * @return Session
+     */
+    private function obtainSession(ObtainToken $request, ArrayObject $model): Session
+    {
+        Stripe::setApiKey($this->keys->getSecretKey());
+
+        $session = Session::create(
+            [
+                'success_url'           => $request->getToken()->getTargetUrl(), //@TODO : could not find any doc about what to use => check if my guess is good
+                'cancel_url'            => $request->getToken()->getAfterUrl(),  //@TODO : could not find any doc about what to use => check if my guess is good
+                'payment_method_types'  => ['card'],
+                'submit_type'           => Session::SUBMIT_TYPE_PAY,
+                'line_items'            => $model['line_items'],
+                'client_reference_id'   => $request->getToken()->getHash(),      //the token hash is used to let Stripe detect when we call it several time about the same capture
+            ]
+        );
+
+        return $session;
     }
 }

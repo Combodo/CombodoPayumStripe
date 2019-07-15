@@ -26,7 +26,7 @@ class StripeV3GatewayFactory extends GatewayFactory
             'payum.factory_name' => static::FACTORY_NAME,
             'payum.factory_title' => 'Stripe checkout V3',
 
-            'payum.template.obtain_token' => '@CombodoStripeV3/obtain_checkout_token.html.twig',
+            'payum.template.obtain_token' => '@CombodoStripeV3/redirect_to_checkout.html.twig',
 
             'payum.action.capture' => new CaptureAction(),                              // standard action
             'payum.action.convert_payment' => new ConvertPaymentAction(),               // standard action
