@@ -1,0 +1,43 @@
+# conf added in order to use https://github.com/Combodo/CombodoPayumStripe
+services:
+    stripe_checkout_v3:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments:
+            - Combodo\StripeV3\StripeV3GatewayFactory
+        tags:
+            - { name: payum.gateway_factory_builder, factory: stripe_checkout_v3 }
+
+    app.form.type.gateway_configuration.stripev3:
+        class: AppBundle\Form\Type\GatewayConfiguration\StripeV3GatewayConfigurationType
+        public: true
+        tags:
+            - { name: "sylius.gateway_configuration_type", type: !php/const Combodo\StripeV3\StripeV3GatewayFactory::FACTORY_NAME, label: "app.payum_gateway_factory.stripe_checkout_v3" }
+            - { name: form.type }
+
+    app.payment.payum.stripe.on_capture.add_metadata:
+        class: AppBundle\Payment\StripeAddMetadataOnCaptureExtensions
+        arguments:
+            - 'itop_hub'
+        tags:
+            - { name: payum.extension, all: true, prepend: true}
+        public: true
+
+    app.payment.payum.stripe.on_capture.fulfill_stripe_v3_requirements:
+        class: AppBundle\Payment\StripeV3RequirementsFulfillerOnCaptureExtensions
+        arguments:
+            - 'itop_hub'
+            - '@liip_imagine.cache.manager'
+            - 'sylius_shop_product_thumbnail'
+        tags:
+            - { name: payum.extension, all: true, prepend: true}
+        public: true
+
+    app.payment.payum.stripe.on_notify.update_payment_state:
+        class: AppBundle\Payment\StripeV3UpdatePaymentStateOnNotifyExtension
+        arguments:
+            - '@sm.factory'
+            - '@payum'
+        tags:
+            - { name: payum.extension, all: true, prepend: true}
+        lazy: true
+        public: true

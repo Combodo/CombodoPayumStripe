@@ -1,8 +1,9 @@
 # Payum gateway : Combodo/StripeV3
 
 This is an **unofficial** & :construction: early WIP :construction: Payum gateway providing an SCA compatible stripe integration.
- 
 
+## Documentation
+The documentation is available under the [doc directory](./doc)
 
 ## Developed by Combodo
 
