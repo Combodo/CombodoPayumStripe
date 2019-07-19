@@ -1,5 +1,5 @@
 {
-    "name": "Combodo/stripeV3",
+    "name": "combodo/stripe-v3",
     "type": "project",
     "description": "Provide SCA compatible Stripe integration.",
     "keywords": ["payment", "stripe", "sca", "payum"],
