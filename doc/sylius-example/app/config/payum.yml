@@ -33,11 +33,20 @@ services:
         public: true
 
     app.payment.payum.stripe.on_notify.update_payment_state:
-        class: AppBundle\Payment\StripeV3UpdatePaymentStateOnNotifyExtension
+        class: AppBundle\Payment\StripeV3UpdatePaymentStateOnCheckoutCompletedEvent
         arguments:
             - '@sm.factory'
             - '@payum'
+            - '@logger'
         tags:
             - { name: payum.extension, all: true, prepend: true}
         lazy: true
         public: true
+
+    app.payment.payum.command.fulfill_lost_payments:
+        class: AppBundle\Command\FulfillLostPayments
+        arguments:
+            - '@payum'
+            - '@logger'
+        tags:
+            - {name: 'console.command'}

@@ -3,6 +3,7 @@ namespace Combodo\StripeV3\Action;
 
 use Combodo\StripeV3\Constants;
 use Combodo\StripeV3\Keys;
+use Combodo\StripeV3\Request\handleCheckoutCompletedEvent;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Action\ExecuteSameRequestWithModelDetailsAction;
 use Payum\Core\ApiAwareInterface;
@@ -31,22 +32,15 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayAwareInterface
 {
+    use GatewayAwareTrait;
+    
     use ApiAwareTrait {
         setApi as _setApi;
     }
 
-    use GatewayAwareTrait;
-
-    /** @var GetBinaryStatus $status */
-    private $status;
-    /** @var TokenInterface $token  */
-    private $token;
-
     public function __construct()
     {
         $this->apiClass     = Keys::class;
-        $this->status       = null;
-        $this->token        = null;
     }
 
     /**
@@ -69,36 +63,12 @@ class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayA
     {
         RequestNotSupportedException::assertSupports($this, $request);
 
-
-        $event              = $this->obtainStripeEvent();
-        $checkoutSession    = $event->data->object;
-        $tokenHash          = $checkoutSession->client_reference_id;
-        $checkoutSessionId  = $checkoutSession->id;
-        $paymentIntentId    = $checkoutSession->payment_intent;
-
-        $this->token    = $this->findTokenByHash($tokenHash);
-        $this->status   = $this->findStatusByToken($this->token);
-
-        $this->status->markCaptured();
-        $payment = $this->status->getFirstModel();
-        $request->setModel($payment);
-
-        $this->updatePayment($payment, $checkoutSessionId, $paymentIntentId);
+        $event = $this->obtainStripeEvent();
+        $request = new handleCheckoutCompletedEvent($event);
+        $this->gateway->execute($request);
     }
 
-
-    private function findStatusByToken(TokenInterface $token): GetBinaryStatus
-    {
-        $status = new GetBinaryStatus($token);
-        $this->gateway->execute($status);
-
-        if (empty($status->getValue())) {
-            throw new BadRequestHttpException('The payment status could not be fetched');
-        }
-
-        return $status;
-    }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -143,40 +113,5 @@ class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayA
         return $event;
     }
 
-    public function getStatus() :?GetBinaryStatus
-    {
-        return $this->status;
-    }
-
-    public function getToken() : ?TokenInterface
-    {
-        return $this->token;
-    }
-
-    /**
-     * @param $tokenHash
-     */
-    private function findTokenByHash($tokenHash): TokenInterface
-    {
-        $getTokenRequest = new GetToken($tokenHash);
-        $this->gateway->execute($getTokenRequest);
-        $token = $getTokenRequest->getToken();
-        if (!$token instanceof TokenInterface) {
-            throw new BadRequestHttpException('The requested token was not found');
-        }
-
-        return $token;
-    }
-
-    /**
-     * @param $payment
-     * @param $checkoutSession
-     */
-    private function updatePayment($payment, $checkoutSessionId, $paymentIntentId): void
-    {
-        $details = $payment->getDetails();
-        $details['checkout_session_id'] = $checkoutSessionId;
-        $details['payment_intent_id']   = $paymentIntentId;
-        $payment->setDetails($details);
-    }
+    
 }

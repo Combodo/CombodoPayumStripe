@@ -3,10 +3,14 @@ namespace Combodo\StripeV3;
 
 use Combodo\StripeV3\Action\Api\CreateTokenAction;
 use Combodo\StripeV3\Action\Api\ObtainTokenAction;
+use Combodo\StripeV3\Action\Api\PollFullfilledPaymentsAction;
 use Combodo\StripeV3\Action\AuthorizeAction;
 use Combodo\StripeV3\Action\CancelAction;
+use Combodo\StripeV3\Action\CheckoutCompletedEventAction;
 use Combodo\StripeV3\Action\ConvertPaymentAction;
 use Combodo\StripeV3\Action\CaptureAction;
+use Combodo\StripeV3\Action\FindLostPaymentsAction;
+use Combodo\StripeV3\Action\HandleLostPaymentsAction;
 use Combodo\StripeV3\Action\NotifyAction;
 use Combodo\StripeV3\Action\NotifyUnsafeAction;
 use Combodo\StripeV3\Action\RefundAction;
@@ -38,6 +42,12 @@ class StripeV3GatewayFactory extends GatewayFactory
             },        // stripe specific action + injection of configuration!
 
             'payum.action.notify_unsafe' => new NotifyUnsafeAction(),                   // modified standard action to handle "unsafe" ie without the token webhooks
+
+            'payum.action.poll_fullfilled_payements' => new PollFullfilledPaymentsAction(), // custom action
+            'payum.action.handle_lost_payements'     => new HandleLostPaymentsAction(),     // custom action
+            'payum.action.chackout_completed'        => new CheckoutCompletedEventAction(), // custom action
+
+
 
 //            'payum.action.create_token' => new CreateTokenAction(),                     // stripe specific action
 
