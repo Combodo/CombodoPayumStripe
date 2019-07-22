@@ -6,6 +6,6 @@ The gateway available in this repository need an extra work on your integration 
 
 under the subdirectory [sylius-example](./sylius-example), you'll find how I did integrate the project under my sylius project.
 
-beware: it is an higly customized sylius 1.2! wich rely on symfony!
+beware: it is a higly customized sylius 1.2! which rely on symfony!
 You'l need extra work to make it work under your own configuration!
 
