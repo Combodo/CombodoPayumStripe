@@ -10,12 +10,12 @@
             "email": "bruno.dasilva@combodo.com"
         },
         {
-            "name":     "Payum project",
+            "name":     "Payum project (this project was ignited using their skeleton application)",
             "homepage": "https://payum.forma-pro.com/"
         },
         {
             "name":     "Community contributions",
-            "homepage": "https://github.com/Payum/AuthorizeNetAim/contributors"
+            "homepage": "https://github.com/Combodo/CombodoPayumStripe/graphs/contributors"
         }
     ],
     "require": {

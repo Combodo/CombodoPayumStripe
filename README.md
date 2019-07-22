@@ -13,9 +13,11 @@ For the needs of iTop Hub which offer free and [commercial iTop extensions](http
 
 With no doubt, we opened sourced our development. Please keep in mind that we are not the editor of Payum, thus this integration is probably far from perfect.    
 
-
-
-This code is inspired by the original stripe gateway but also by [@PyRowMan](https://github.com/PyRowMan)'s [proof of concept](https://github.com/Payum/Payum/issues/804#issuecomment-509135558)
+This code 
+ - has [community contribution](https://github.com/Combodo/CombodoPayumStripe/graphs/contributors): many thanks folks! 
+ - is inspired by 
+   - the original stripe gateway 
+   - and also by this [proof of concept](https://github.com/Payum/Payum/issues/804#issuecomment-509135558)
 
 
 ## Support
