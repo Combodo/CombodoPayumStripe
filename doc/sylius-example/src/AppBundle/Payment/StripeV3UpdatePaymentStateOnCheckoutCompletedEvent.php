@@ -13,33 +13,34 @@ declare(strict_types=1);
 
 namespace AppBundle\Payment;
 
-use Combodo\StripeV3\Action\NotifyUnsafeAction;
-use Mockery\Matcher\Not;
+use Combodo\StripeV3\Action\CheckoutCompletedEventAction;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
 use Payum\Core\Payum;
-use Payum\Core\Request\Generic;
-use Payum\Core\Request\GetStatusInterface;
-use Payum\Core\Request\Notify;
+use Psr\Log\LoggerInterface;
 use SM\Factory\FactoryInterface;
-use Sylius\Bundle\PayumBundle\Request\GetStatus;
 use Sylius\Component\Payment\Model\PaymentInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 use Sylius\Component\Resource\StateMachine\StateMachineInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Webmozart\Assert\Assert;
 
-class StripeV3UpdatePaymentStateOnNotifyExtension implements ExtensionInterface
+class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInterface
 {
     /** @var FactoryInterface */
     private $factory;
     /** @var Payum $payum */
     private $payum;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
-    public function __construct(FactoryInterface $factory, Payum $payum)
+    public function __construct(FactoryInterface $factory, Payum $payum, LoggerInterface $logger)
     {
         $this->factory = $factory;
         $this->payum = $payum;
+        $this->logger = $logger;
     }
 
     /**
@@ -62,7 +63,7 @@ class StripeV3UpdatePaymentStateOnNotifyExtension implements ExtensionInterface
     public function onPostExecute(Context $context): void
     {
         $action = $context->getAction();
-        if (!$action instanceof NotifyUnsafeAction) {
+        if (!$action instanceof CheckoutCompletedEventAction) {
             return;
         }
         if ($context->getException() !== null) {
@@ -89,6 +90,11 @@ class StripeV3UpdatePaymentStateOnNotifyExtension implements ExtensionInterface
 
         if ($payment->getState() !== PaymentInterface::STATE_COMPLETED) {
             $this->updatePaymentState($payment, PaymentInterface::STATE_COMPLETED);
+        } else {
+            $this->logger->debug("Transition skipped", [
+                'target state'      => PaymentInterface::STATE_COMPLETED,
+                'payment object'    => $payment,
+            ]);
         }
 
 
@@ -104,6 +110,17 @@ class StripeV3UpdatePaymentStateOnNotifyExtension implements ExtensionInterface
 
         if (null !== $transition = $stateMachine->getTransitionToState($nextState)) {
             $stateMachine->apply($transition);
+            $this->logger->debug("Transition applied", [
+                'next state'        => $nextState,
+                'transition'        => $transition,
+                'payment object'    => $payment,
+            ]);
+        } else {
+            $this->logger->debug("No Transition to apply ?!?", [
+                'next state'        => $nextState,
+                'transition'        => $transition,
+                'payment object'    => $payment,
+            ]);
         }
     }
 }
