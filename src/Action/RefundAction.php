@@ -55,9 +55,6 @@ class RefundAction implements ActionInterface, ApiAwareInterface
 
         try {
             Stripe::setApiKey($this->keys->getSecretKey());
-//            $ch = StripeRefund::retrieve($model['id']);
-//            $refund = $ch->refunds->create(array('amount' => 100));
-//            $refund = StripeRefund::create($model->toUnsafeArrayWithoutLocal());
             $session = \Stripe\Checkout\Session::retrieve($model['session_id']);
             $intent = \Stripe\PaymentIntent::retrieve($session->payment_intent);
             $intent->charges->data[0]->refund();
