@@ -5,7 +5,7 @@ use Payum\Core\Action\ActionInterface;
 use Payum\Core\Request\GetStatusInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
-use Combodo\StripeV3;
+use Combodo\StripeV3\Constants;
 
 class StatusAction implements ActionInterface
 {
@@ -50,26 +50,14 @@ class StatusAction implements ActionInterface
             return;
         }
 
-        if (Constants::STATUS_SUCCEEDED == $model['status'] && $model['captured'] && $model['paid']) {
+        if (Constants::STATUS_SUCCEEDED == $model['status']) {
             $request->markCaptured();
 
             return;
         }
 
-        if (Constants::STATUS_PAID == $model['status'] && $model['captured'] && $model['paid']) {
+        if (Constants::STATUS_PAID == $model['status']) {
             $request->markCaptured();
-
-            return;
-        }
-
-
-        if (Constants::STATUS_SUCCEEDED == $model['status'] && false == $model['captured']) {
-            $request->markAuthorized();
-
-            return;
-        }
-        if (Constants::STATUS_PAID == $model['status'] && false == $model['captured']) {
-            $request->markAuthorized();
 
             return;
         }
