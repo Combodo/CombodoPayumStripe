@@ -22,12 +22,20 @@
         "payum/core": "^1.5",
         "php-http/guzzle6-adapter": "^1.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^8.2"
+    },
     "config": {
         "bin-dir": "bin"
     },
     "autoload": {
         "psr-4": {
             "Combodo\\StripeV3\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Combodo\\StripeV3\\Tests\\": "tests/"
         }
     }
 }

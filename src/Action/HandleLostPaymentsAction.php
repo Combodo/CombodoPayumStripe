@@ -46,7 +46,7 @@ class HandleLostPaymentsAction implements ActionInterface, GatewayAwareInterface
                $this->gateway->execute($request);
                $tokenFoundCounter++;
            } catch (TokenNotFound $e) {
-               //if this token is not found, it mean that the payment was already processed, on a 100% working code we should laways enter here
+               //if this token is not found, it means that the payment was already processed, on a 100% working code we should always enter here
                $tokenNotFoundCounter++;
            }
         }
