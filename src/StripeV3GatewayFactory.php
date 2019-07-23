@@ -1,6 +1,7 @@
 <?php
 namespace Combodo\StripeV3;
 
+use Combodo\StripeV3\Action\Api\CheckPaymentAction;
 use Combodo\StripeV3\Action\Api\CreateTokenAction;
 use Combodo\StripeV3\Action\Api\ObtainTokenAction;
 use Combodo\StripeV3\Action\Api\PollFullfilledPaymentsAction;
@@ -15,6 +16,7 @@ use Combodo\StripeV3\Action\NotifyAction;
 use Combodo\StripeV3\Action\NotifyUnsafeAction;
 use Combodo\StripeV3\Action\RefundAction;
 use Combodo\StripeV3\Action\StatusAction;
+use Combodo\StripeV3\Request\Api\CheckPayment;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\GatewayFactory;
 
@@ -40,8 +42,10 @@ class StripeV3GatewayFactory extends GatewayFactory
             'payum.action.obtain_token' => function (ArrayObject $config) {             // stripe specific action
                 return new ObtainTokenAction($config['payum.template.obtain_token']);
             },        // stripe specific action + injection of configuration!
+            'payum.action.check_payment' => new CheckPaymentAction(),                         // stripe specific action + injection of configuration!
+            'payum.action.notify_unsafe' => new NotifyUnsafeAction(),                   // modified standard action to handle "unsafe" ie without the token webhooks,
 
-            'payum.action.notify_unsafe' => new NotifyUnsafeAction(),                   // modified standard action to handle "unsafe" ie without the token webhooks
+            'payum.action.refund' => new RefundAction(),
 
             'payum.action.poll_fullfilled_payements' => new PollFullfilledPaymentsAction(), // custom action
             'payum.action.handle_lost_payements'     => new HandleLostPaymentsAction(),     // custom action
