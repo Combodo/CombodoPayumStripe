@@ -34,7 +34,16 @@ class HandleLostPaymentsAction implements ActionInterface, GatewayAwareInterface
     {
         RequestNotSupportedException::assertSupports($this, $request);
 
-        $fullfilledPayements = new PollFullfilledPayments();
+        $eventsFilter = [];
+        if (!empty($request->getMinCtime())) {
+            $eventsFilter = [
+                'created'   => [
+                    'gte' => strtotime($request->getMinCtime()),
+                ],
+            ];
+        }
+        
+        $fullfilledPayements = new PollFullfilledPayments($eventsFilter);
         $this->gateway->execute($fullfilledPayements);
 
         $tokenFoundCounter = $tokenNotFoundCounter = 0;
@@ -42,7 +51,7 @@ class HandleLostPaymentsAction implements ActionInterface, GatewayAwareInterface
         $eventsIterator = $fullfilledPayements->getEvents()->autoPagingIterator();
         foreach ($eventsIterator as $event) {
            try {
-               $request = new handleCheckoutCompletedEvent($event);
+               $request = new handleCheckoutCompletedEvent($event, handleCheckoutCompletedEvent::TOKEN_CAN_BE_INVALIDATED);
                $this->gateway->execute($request);
                $tokenFoundCounter++;
            } catch (TokenNotFound $e) {

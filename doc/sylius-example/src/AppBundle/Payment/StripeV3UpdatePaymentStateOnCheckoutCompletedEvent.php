@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace AppBundle\Payment;
 
 use Combodo\StripeV3\Action\CheckoutCompletedEventAction;
+use Combodo\StripeV3\Request\handleCheckoutCompletedEvent;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
 use Payum\Core\Payum;
@@ -80,13 +81,11 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
             throw new \LogicException('The request status could not be retrieved! (see previous exceptions)');
         }
 
-
         if (! $status->isCaptured()) {
-            return;
+            return;//this return is pretty important!! DO NOT REMOVE IT!!!! if you do so, the user who cancels their payment will have the payment granted anyway!
         }
 
         $payment = $status->getFirstModel();
-
 
         if ($payment->getState() !== PaymentInterface::STATE_COMPLETED) {
             $this->updatePaymentState($payment, PaymentInterface::STATE_COMPLETED);
@@ -97,8 +96,13 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
             ]);
         }
 
-
-        $this->payum->getHttpRequestVerifier()->invalidate($token);
+        /** @var handleCheckoutCompletedEvent $request */
+        $request = $context->getRequest();
+        if ($request->canTokenBeInvalidated()) {
+            $this->payum->getHttpRequestVerifier()->invalidate($token);
+        } else {
+            $this->logger->debug('The request asked to keep the token, it was not invalidated');
+        }
     }
 
     private function updatePaymentState(PaymentInterface $payment, string $nextState): void

@@ -128,7 +128,7 @@ class CheckoutCompletedEventActionTest extends TestCase
         ];
         $event = new Event();
         $event->data = $eventObject;
-        $request = new handleCheckoutCompletedEvent($event);
+        $request = new handleCheckoutCompletedEvent($event, handleCheckoutCompletedEvent::TOKEN_CAN_BE_INVALIDATED);
         $checkoutCompletedEventAction = new CheckoutCompletedEventAction();
         $checkoutCompletedEventAction->setGateway($mockGateway);
         $result = $checkoutCompletedEventAction->execute($request);

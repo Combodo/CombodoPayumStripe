@@ -74,7 +74,7 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
     {
         $eventsFilter = [
             'created'   => [
-                'gte' => strtotime('-1 hour -5 minutes'),
+                'gte' => strtotime('-15 minutes'),
             ],
         ];
 
@@ -87,7 +87,7 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
                 continue;
             }
             try {
-                $request = new handleCheckoutCompletedEvent($event);
+                $request = new handleCheckoutCompletedEvent($event, handleCheckoutCompletedEvent::TOKEN_CAN_BE_INVALIDATED);
                 $this->gateway->execute($request); //an extension must be plugged onto this in order to handle the payment logic on the website side (@see https://github.com/Combodo/CombodoPayumStripe/tree/master/doc/sylius-example)
             } catch (TokenNotFound $e) {
                 //if this token is not found, it means that the payment was already processed, hu ho !?! This has no sense! the finally will try to redirect the user, but their are a lot of chance that something pretty bad happend... we logically should never enter here!

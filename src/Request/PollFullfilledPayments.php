@@ -25,7 +25,7 @@ class PollFullfilledPayments
             'type'      => 'checkout.session.completed',
             'limit'     => 100,                         //note: given this limit, you must use autoPagingIterator() to iterate over the Collection
             'created'   => [
-                'gte' => strtotime('-1 month'),
+                'gte' => strtotime('-2 days'),
             ],
         ];
 

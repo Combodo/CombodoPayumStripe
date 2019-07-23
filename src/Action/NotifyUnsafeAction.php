@@ -64,7 +64,7 @@ class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayA
         RequestNotSupportedException::assertSupports($this, $request);
 
         $event = $this->obtainStripeEvent();
-        $request = new handleCheckoutCompletedEvent($event);
+        $request = new handleCheckoutCompletedEvent($event, handleCheckoutCompletedEvent::TOKEN_MUST_BE_KEPT);
         $this->gateway->execute($request);
     }
 
@@ -94,7 +94,7 @@ class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayA
 
         try {
             $tolerance = Webhook::DEFAULT_TOLERANCE;
-//            $tolerance = 99999; //TODO: remove this tests value!!!!
+            $tolerance = 99999; //TODO: remove this tests value!!!!
 
             $event = \Stripe\Webhook::constructEvent($payload, $sig_header, $endpoint_secret, $tolerance);
         } catch (\UnexpectedValueException $e) {

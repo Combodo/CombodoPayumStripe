@@ -10,9 +10,19 @@ namespace Combodo\StripeV3\Request;
 class HandleLostPayments
 {
     /** @var int $tokenNotFoundCounter*/
-    private $tokenNotFoundCounter = 0;
+    private $tokenNotFoundCounter;
     /** @var int $tokenFoundCounter */
-    private $tokenFoundCounter    = 0;
+    private $tokenFoundCounter;
+    /** @var string $minCtime */
+    private $minCtime;
+
+    public function __construct(string $minCtime = null)
+    {
+        $this->minCtime             = $minCtime;
+        $this->tokenNotFoundCounter = 0;
+        $this->tokenFoundCounter    = 0;
+
+    }
 
     public function setParsedValidCounter(int $tokenNotFoundCounter): void
     {
@@ -22,6 +32,11 @@ class HandleLostPayments
     public function setLostRetrievedCounter(int $tokenFoundCounter): void
     {
         $this->tokenFoundCounter;
+    }
+
+    public function getMinCtime(): ?string
+    {
+        return $this->minCtime;
     }
 
     public function getParsedValidCounter(): int

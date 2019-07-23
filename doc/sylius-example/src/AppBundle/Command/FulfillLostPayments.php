@@ -20,6 +20,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class FulfillLostPayments extends Command
 {
+    const MIN_CTIME = '-1 day';
     // the name of the command (the part after "bin/console")
     protected static $defaultName = 'payum:stripev3:fulfill-lost-payments';
     /**
@@ -46,7 +47,7 @@ class FulfillLostPayments extends Command
             ->setDescription('pull event from Stripe and check if we have missed some in our database')
 
             ->addArgument('gateway-name', InputArgument::REQUIRED, 'The gateway name associated with the token ("stripe_checkout_v3" in the documentation examples)')
-//            ->addOption('min_ctime', null, InputOption::VALUE_OPTIONAL, 'What is the max age filter for the events about to be fetched (use strtotime compatible format)?', '-1 day')
+            ->addOption('min_ctime', null, InputOption::VALUE_OPTIONAL, 'What is the max age filter for the events about to be fetched (use strtotime compatible format)?', self::MIN_CTIME)
         ;
     }
 
@@ -60,7 +61,8 @@ class FulfillLostPayments extends Command
 
         $gateway = $this->payum->getGateway($gatewayName);
 
-        $request = new HandleLostPayments();
+        $minCtime = $input->getOption('min_ctime');
+        $request = new HandleLostPayments($minCtime);
         $gateway->execute($request);
 
         $message = sprintf(
