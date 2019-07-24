@@ -5,6 +5,8 @@ use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayInterface;
 use Payum\Core\Request\Capture;
+use Payum\Core\Request\GetHttpRequest;
+use Payum\Core\Security\TokenInterface;
 use Payum\Core\Tests\GenericActionTest;
 use Combodo\StripeV3\Action\CaptureAction;
 use Combodo\StripeV3\Constants;
@@ -51,13 +53,16 @@ class CaptureActionTest extends GenericActionTest
     /**
      * @test
      */
-    public function shouldSubExecuteObtainTokenRequestIfTokenNotSet()
+    public function shouldSubExecuteObtainTokenRequest()
     {
-        $model = array();
-
         $gatewayMock = $this->createGatewayMock();
         $gatewayMock
             ->expects($this->at(0))
+            ->method('execute')
+            ->with($this->isInstanceOf(GetHttpRequest::class))
+        ;
+        $gatewayMock
+            ->expects($this->at(1))
             ->method('execute')
             ->with($this->isInstanceOf(ObtainToken::class))
         ;
@@ -65,7 +70,10 @@ class CaptureActionTest extends GenericActionTest
         $action = new CaptureAction();
         $action->setGateway($gatewayMock);
 
-        $action->execute(new Capture($model));
+        $tokenMock = $this->createMock(TokenInterface::class);
+        $request = new Capture($tokenMock);
+        $request->setModel([]);
+        $action->execute($request);
     }
 
     /**
@@ -73,22 +81,31 @@ class CaptureActionTest extends GenericActionTest
      */
     public function shouldSubExecuteObtainTokenRequestWithCurrentModel()
     {
-        $model = new \ArrayObject(['foo' => 'fooVal']);
+        $arrayModel = ['foo' => 'fooVal'];
 
         $gatewayMock = $this->createGatewayMock();
         $gatewayMock
             ->expects($this->at(0))
             ->method('execute')
-            ->will($this->returnCallback(function (ObtainToken $request) use ($model) {
-                $this->assertInstanceOf(ArrayObject::class, $request->getModel());
-                $this->assertSame(['foo' => 'fooVal'], (array) $request->getModel());
-            }))
+            ->with($this->isInstanceOf(GetHttpRequest::class))
+        ;
+        $gatewayMock
+            ->expects($this->at(1))
+            ->method('execute')
+            ->will($this->returnCallback(function (ObtainToken $request) use ($arrayModel) {
+            $this->assertInstanceOf(ArrayObject::class, $request->getModel());
+            $this->assertSame($arrayModel, (array) $request->getModel());
+        }))
         ;
 
         $action = new CaptureAction();
         $action->setGateway($gatewayMock);
 
-        $action->execute(new Capture($model));
+        $tokenMock = $this->createMock(TokenInterface::class);
+        $request = new Capture($tokenMock);
+
+        $request->setModel(new \ArrayObject($arrayModel));
+        $action->execute($request);
     }
 
     /**
