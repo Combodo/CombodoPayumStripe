@@ -18,6 +18,7 @@ use Combodo\StripeV3\Request\handleCheckoutCompletedEvent;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
 use Payum\Core\Payum;
+use Payum\Core\Security\HttpRequestVerifierInterface;
 use Psr\Log\LoggerInterface;
 use SM\Factory\FactoryInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
@@ -30,18 +31,32 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
 {
     /** @var FactoryInterface */
     private $factory;
-    /** @var Payum $payum */
-    private $payum;
+    /** @var HttpRequestVerifierInterface $httpRequestVerifier */
+    private $httpRequestVerifier;
     /**
      * @var LoggerInterface
      */
     private $logger;
 
-    public function __construct(FactoryInterface $factory, Payum $payum, LoggerInterface $logger)
+    public function __construct(FactoryInterface $factory, LoggerInterface $logger)
     {
-        $this->factory = $factory;
-        $this->payum = $payum;
-        $this->logger = $logger;
+        $this->factory              = $factory;
+        $this->logger               = $logger;
+        $this->httpRequestVerifier  = null;
+    }
+
+    /**
+     * This method is used by the dependency injection to avoid a false positive circular reference.
+     * Please, you must not call this method
+     *
+     * @param HttpRequestVerifierInterface $httpRequestVerifier
+     */
+    public function setHttpRequestVerifier(HttpRequestVerifierInterface $httpRequestVerifier): void
+    {
+        if (null !== $this->httpRequestVerifier) {
+            throw new \LogicException(__METHOD__.' is not meant to be called outside of the dependency injection!');
+        }
+        $this->httpRequestVerifier  = $httpRequestVerifier;
     }
 
     /**
@@ -99,7 +114,7 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
         /** @var handleCheckoutCompletedEvent $request */
         $request = $context->getRequest();
         if ($request->canTokenBeInvalidated()) {
-            $this->payum->getHttpRequestVerifier()->invalidate($token);
+            $this->httpRequestVerifier->invalidate($token);
         } else {
             $this->logger->debug('The request asked to keep the token, it was not invalidated');
         }
