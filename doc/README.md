@@ -64,8 +64,6 @@ This gateway provide three different methods to retrieve payments
 every three implementations execute a request `handleCheckoutCompletedEvent` handled by `CheckoutCompletedEventAction`.
 > :loudspeaker: This is very important because as you can see in the extension [StripeV3UpdatePaymentStateOnCheckoutCompletedEvent](./sylius-example/src/AppBundle/Payment/StripeV3UpdatePaymentStateOnCheckoutCompletedEvent.php), you are supposed to plug your code onto this `CheckoutCompletedEventAction`. 
  
-
-> :fearful: Attention, this solution is not 100% reliable. You must complete it with the cron.
   
 ## Redirect after payment
 
@@ -79,6 +77,9 @@ Stripe will require you to write the webhook adresse.
  > :bulb: if you use Symfony, it should be `/payment/notify/unsafe/{gateway}` (see `bin/console debug:router payum_notify_do_unsafe`)
 (it expand to `/payment/notify/unsafe/stripe_checkout_v3` if you followed the [configuration proposal](./sylius-example/app/config/payum.yml))
 
+:information_source: Amongst the three, this method is the first one being called, and the redirect after payment URL require the token to be still present, so this is the only method that ask to not delete the token after a successful payment processing on your side.
+
+> :fearful: Attention, this solution is not 100% reliable. You must complete it with the cron.
 
 ## scheduled task
 (also known as `cron`)
@@ -89,4 +90,4 @@ to activate this method, you must :
  - call it within a cron
    - Symphony users, this should work for you: `bin/console payum:stripev3:fulfill-lost-payments stripe_checkout_v3 --min_ctime="-3 day"
 `
- 
+This solution is more reliable than the two others because in case of a failure, you can re-play it multiple times. So your `min_ctime` should be _at least_ twice greater than the cron frequency  
