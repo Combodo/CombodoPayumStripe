@@ -138,53 +138,6 @@ class RefundActionTest extends GenericActionTest
         $this->assertArrayNotHasKey('refunded', $refund->getModel());
     }
 
-
-    /**
-     * @test
-     */
-    public function shouldExecuteHandleCheckoutCompletedEventIfEventRetrieved()
-    {
-        $apiMock = $this->createApiMock();
-        $gatewayMock = $this->createGatewayMock();
-        $gatewayMock
-            ->expects($this->once())
-            ->method('execute')
-            ->with($this->isInstanceOf(handleCheckoutCompletedEvent::class))
-        ;
-
-        $class = new \ReflectionClass($this->actionClass);
-        $methodHandleStripeEvent = $class->getMethod('handleStripeEvent');
-        $methodHandleStripeEvent->setAccessible(true);
-
-        $this->action->setGateway($gatewayMock);
-        $this->action->setApi($apiMock);
-
-        $model = new \ArrayObject([
-            'AMOUNT' => 1.0,
-            'FOO' => 'FOOOLD',
-        ]);
-
-        $event = $this->createMock(Event::class);
-
-        //this call the private method being tested
-        $methodHandleStripeEvent->invokeArgs($this->action, [$event, false]);
-    }
-
-    /**
-     * @test
-     * @expectedException LogicException
-     */
-    public function throwIfWrongStripeEventType()
-    {
-        $event = $this->createMock(Event::class);
-        $event->type = 'foo';
-
-        $instance = $this->action;
-        $methodParams = [$event];
-        $methodName = 'checkStripeEventType';
-        $this->invokeNonPublicMethod($instance, $methodName, $methodParams);
-    }
-
     /**
      * @return \PHPUnit_Framework_MockObject_MockObject|Keys
      */
