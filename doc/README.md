@@ -2,7 +2,7 @@
 The gateway available in this repository it meant to provide you an integration with stripe [Checkout Server](https://stripe.com/docs/payments/checkout/server).
  
 
-In order to achieve this, 
+In order to achieve this, you will have to follow those steps:
 
 # installation
 
@@ -12,7 +12,7 @@ In order to achieve this,
 composer require combodo/stripe-v3
 ```
 
-note: for now I do not plan to follow BC rules, use semantic versioning or other, so please check if the code is working after each upgrade
+note: for now I do not plan to follow BC rules, use semantic versioning or other, so please check if your code is still working after each upgrade.
 
 ## register the gateway
 
@@ -33,10 +33,10 @@ If you want to implement your own solution, please follow Payum's documentation:
 # Customization 
 
 This gateway handle communication with stripe and changes the payment state.
-Has avery Payum gateways, it cannont know the details of your integration, so it will need an extra work on your integration side:
+As avery Payum gateways, it cannot know the workflow of your store, so it does require you to perform an integration between your store and this gateway:
 
 
-as this may be a little cumbersome, you'll find how I did integrate this gateway with my Sylius project [under the subdirectory sylius-example](./sylius-example).
+This may be a little cumbersome, you'll find how I did integrate this gateway with my Sylius project [under the subdirectory sylius-example](./sylius-example).
 
 > :bangbang: beware: I tested it on my own highly customized sylius 1.2! 
 Thus I had some feedback of person having integrated it on sylius 1.5, I haven't' tested it myself, and maybe you'll need extra work to make it work under your own configuration!
