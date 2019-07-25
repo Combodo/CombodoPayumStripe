@@ -87,6 +87,6 @@ To activate this method, you must :
  - create a command 
    - Symfony users, see this [example](./sylius-example/src/AppBundle/Command/FulfillLostPayments.php) a do not forget to [tag the service](./sylius-example/app/config/payum.yml)
  - call it within a cron
-   - Symfony users, this should work for you: `bin/console payum:stripev3:fulfill-lost-payments stripe_checkout_v3 --min_ctime="-3 day"
-`
+   - Symfony users, this should work for you: `bin/console payum:stripev3:fulfill-lost-payments stripe_checkout_v3 --min_ctime="-3 day"`
+   
 This solution is more reliable than the two others because in case of a failure, you can re-play it multiple times. So your `min_ctime` should be _at least_ twice greater than the cron frequency  
