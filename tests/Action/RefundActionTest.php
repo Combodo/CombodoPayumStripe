@@ -125,7 +125,7 @@ class RefundActionTest extends GenericActionTest
     /**
      * @test
      */
-    public function throwIfInvalidSignature()
+    public function ShouldNotHaveRefunded()
     {
         $arrayMock = [
             'payment_intent_id' => 'ThePaymentIntentId',
@@ -133,32 +133,10 @@ class RefundActionTest extends GenericActionTest
         ];
 
         $apiMock = $this->createApiMock();
-        $gatewayMock = $this->createGatewayMock();
-        $gatewayMock
-            ->expects($this->once())
-            ->method('execute')
-            ->with($this->isInstanceOf(GetHttpRequest::class))
-//            ->will($this->returnCallback(function (GetHttpRequest $request) {
-//                $request->query = ['expected be2bill query'];
-//            }))
-        ;
         $this->action->setApi($apiMock);
-
-
-//        try {
-            $this->action->execute(new Refund($arrayMock));
-            var_dump($arrayMock);
-//        } catch (LogicException $exception) {
-//            $this->assertSame('Invalid signature', $exception->getMessage());
-//
-//            return;
-//        } finally {
-//            unset($_SERVER['HTTP_STRIPE_SIGNATURE']);
-//        }
-//
-//        $this->fail('An expected exception did not occur Oo!');
+        $this->action->execute($refund = new Refund($arrayMock));
+        $this->assertArrayNotHasKey('refunded', $refund->getModel());
     }
-
 
 
     /**
