@@ -6,6 +6,7 @@ use Payum\Core\Request\GetStatusInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Combodo\StripeV3;
+use Combodo\StripeV3\Constants;
 
 class StatusAction implements ActionInterface
 {

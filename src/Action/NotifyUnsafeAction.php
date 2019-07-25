@@ -64,7 +64,7 @@ class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayA
         RequestNotSupportedException::assertSupports($this, $request);
 
         $event = $this->obtainStripeEvent();
-        $request = new handleCheckoutCompletedEvent($event);
+        $request = new handleCheckoutCompletedEvent($event, handleCheckoutCompletedEvent::TOKEN_MUST_BE_KEPT);
         $this->gateway->execute($request);
     }
 

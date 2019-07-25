@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace AppBundle\Payment;
 
 use Combodo\StripeV3\Action\CheckoutCompletedEventAction;
+use Combodo\StripeV3\Request\handleCheckoutCompletedEvent;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
 use Payum\Core\Payum;
+use Payum\Core\Security\HttpRequestVerifierInterface;
 use Psr\Log\LoggerInterface;
 use SM\Factory\FactoryInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
@@ -29,18 +31,32 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
 {
     /** @var FactoryInterface */
     private $factory;
-    /** @var Payum $payum */
-    private $payum;
+    /** @var HttpRequestVerifierInterface $httpRequestVerifier */
+    private $httpRequestVerifier;
     /**
      * @var LoggerInterface
      */
     private $logger;
 
-    public function __construct(FactoryInterface $factory, Payum $payum, LoggerInterface $logger)
+    public function __construct(FactoryInterface $factory, LoggerInterface $logger)
     {
-        $this->factory = $factory;
-        $this->payum = $payum;
-        $this->logger = $logger;
+        $this->factory              = $factory;
+        $this->logger               = $logger;
+        $this->httpRequestVerifier  = null;
+    }
+
+    /**
+     * This method is used by the dependency injection to avoid a false positive circular reference.
+     * Please, you must not call this method
+     *
+     * @param HttpRequestVerifierInterface $httpRequestVerifier
+     */
+    public function setHttpRequestVerifier(HttpRequestVerifierInterface $httpRequestVerifier): void
+    {
+        if (null !== $this->httpRequestVerifier) {
+            throw new \LogicException(__METHOD__.' is not meant to be called outside of the dependency injection!');
+        }
+        $this->httpRequestVerifier  = $httpRequestVerifier;
     }
 
     /**
@@ -80,13 +96,11 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
             throw new \LogicException('The request status could not be retrieved! (see previous exceptions)');
         }
 
-
         if (! $status->isCaptured()) {
-            return;
+            return;//this return is pretty important!! DO NOT REMOVE IT!!!! if you do so, the user who cancels their payment will have the payment granted anyway!
         }
 
         $payment = $status->getFirstModel();
-
 
         if ($payment->getState() !== PaymentInterface::STATE_COMPLETED) {
             $this->updatePaymentState($payment, PaymentInterface::STATE_COMPLETED);
@@ -97,8 +111,13 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
             ]);
         }
 
-
-        $this->payum->getHttpRequestVerifier()->invalidate($token);
+        /** @var handleCheckoutCompletedEvent $request */
+        $request = $context->getRequest();
+        if ($request->canTokenBeInvalidated()) {
+            $this->httpRequestVerifier->invalidate($token);
+        } else {
+            $this->logger->debug('The request asked to keep the token, it was not invalidated');
+        }
     }
 
     private function updatePaymentState(PaymentInterface $payment, string $nextState): void

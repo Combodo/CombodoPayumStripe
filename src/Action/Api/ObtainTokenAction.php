@@ -108,22 +108,40 @@ class ObtainTokenAction implements ActionInterface, GatewayAwareInterface, ApiAw
     {
         Stripe::setApiKey($this->keys->getSecretKey());
 
-        // a note about the url: Pyaum know only 3 url:
+        // a note about the url: Payum know only 3 url:
         // - prepare
         // - capture : https://github.com/Payum/Payum/blob/master/docs/examples/capture-script.md
         // - after : https://github.com/Payum/Payum/blob/master/docs/examples/done-script.md
         // in fact, there is also the possibility of a webhook : https://github.com/Payum/Payum/blob/master/docs/examples/notify-script.md
+        $rawUrl = $request->getToken()->getTargetUrl();
+        $query = parse_url($rawUrl, PHP_URL_QUERY);
+        if ('' != $query) {
+            $separator = '&';
+        } else {
+            $separator = '?';
+        }
+        $successUrl = "{$rawUrl}{$separator}checkout_status=completed";
+
+        $rawUrl = $request->getToken()->getAfterUrl();
+        $query = parse_url($rawUrl, PHP_URL_QUERY);
+        if ('' != $query) {
+            $separator = '&';
+        } else {
+            $separator = '?';
+        }
+        $cancelUrl  = "{$rawUrl}{$separator}checkout_status=canceled";
+
         $session = Session::create(
             [
-                'success_url'           => $request->getToken()->getAfterUrl(), //@TODO : could not find any doc about what to use => check if my guess is good
-                'cancel_url'            => $request->getToken()->getAfterUrl(),  //@TODO : could not find any doc about what to use => check if my guess is good
+                'success_url'           => $successUrl,
+                'cancel_url'            => $cancelUrl,
                 'payment_method_types'  => ['card'],
                 'submit_type'           => Session::SUBMIT_TYPE_PAY,
                 'line_items'            => $model['line_items'],
                 'payment_intent_data'   => [
                     'metadata'              => $model['metadata'] ?? ['payment_id' => $model['id']],
                 ],
-                'client_reference_id'   => $request->getToken()->getHash(),      //the token hash is used to let Stripe detect when we call it several time about the same capture
+                'client_reference_id'   => $request->getToken()->getHash(),
             ]
         );
 

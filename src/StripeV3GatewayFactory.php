@@ -5,7 +5,6 @@ use Combodo\StripeV3\Action\Api\CreateTokenAction;
 use Combodo\StripeV3\Action\Api\ObtainTokenAction;
 use Combodo\StripeV3\Action\Api\PollFullfilledPaymentsAction;
 use Combodo\StripeV3\Action\AuthorizeAction;
-use Combodo\StripeV3\Action\CancelAction;
 use Combodo\StripeV3\Action\CheckoutCompletedEventAction;
 use Combodo\StripeV3\Action\ConvertPaymentAction;
 use Combodo\StripeV3\Action\CaptureAction;
@@ -78,7 +77,7 @@ class StripeV3GatewayFactory extends GatewayFactory
             $config['payum.required_options'] = ['publishable_key', 'secret_key', 'endpoint_secret'];
 
             $config['payum.api'] = function (ArrayObject $config) {
-                //TODO : $config->validateNotEmpty($config['payum.required_options']);
+                $config->validateNotEmpty($config['payum.required_options']);
 
                 return new Keys($config['publishable_key'], $config['secret_key'], $config['endpoint_secret']);
             };

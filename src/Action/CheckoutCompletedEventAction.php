@@ -38,7 +38,6 @@ class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInter
         $this->token        = null;
     }
 
-
     /**
      * {@inheritDoc}
      *

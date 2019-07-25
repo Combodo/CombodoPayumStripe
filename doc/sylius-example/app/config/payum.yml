@@ -1,4 +1,11 @@
+payum:
+    dynamic_gateways:
+        encryption:
+            defuse_secret_key: "%defuse_secret%" # @see http://docs.sylius.com/en/latest/cookbook/payments/encrypting-gateway-config.html
+
+
 # conf added in order to use https://github.com/Combodo/CombodoPayumStripe
+
 services:
     stripe_checkout_v3:
         class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
@@ -36,11 +43,12 @@ services:
         class: AppBundle\Payment\StripeV3UpdatePaymentStateOnCheckoutCompletedEvent
         arguments:
             - '@sm.factory'
-            - '@payum'
             - '@logger'
+        calls:
+            - { method: setHttpRequestVerifier, arguments: ['@=service("payum").getHttpRequestVerifier()']}
+
         tags:
             - { name: payum.extension, all: true, prepend: true}
-        lazy: true
         public: true
 
     app.payment.payum.command.fulfill_lost_payments:
