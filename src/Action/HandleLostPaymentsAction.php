@@ -17,13 +17,13 @@ use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Cancel;
 use Payum\Core\Request\GetToken;
 use Payum\Core\Security\TokenInterface;
+use Stripe\Collection;
+use Stripe\Event;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class HandleLostPaymentsAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
-
-
 
     /**
      * {@inheritDoc}
@@ -34,31 +34,9 @@ class HandleLostPaymentsAction implements ActionInterface, GatewayAwareInterface
     {
         RequestNotSupportedException::assertSupports($this, $request);
 
-        $eventsFilter = [];
-        if (!empty($request->getMinCtime())) {
-            $eventsFilter = [
-                'created'   => [
-                    'gte' => strtotime($request->getMinCtime()),
-                ],
-            ];
-        }
-        
-        $fullfilledPayements = new PollFullfilledPayments($eventsFilter);
-        $this->gateway->execute($fullfilledPayements);
+        $eventsCollection = $this->fetchEventsCollection($request);
 
-        $tokenFoundCounter = $tokenNotFoundCounter = 0;
-
-        $eventsIterator = $fullfilledPayements->getEvents()->autoPagingIterator();
-        foreach ($eventsIterator as $event) {
-           try {
-               $request = new handleCheckoutCompletedEvent($event, handleCheckoutCompletedEvent::TOKEN_CAN_BE_INVALIDATED);
-               $this->gateway->execute($request);
-               $tokenFoundCounter++;
-           } catch (TokenNotFound $e) {
-               //if this token is not found, it means that the payment was already processed, on a 100% working code we should always enter here
-               $tokenNotFoundCounter++;
-           }
-        }
+        list($tokenNotFoundCounter, $tokenFoundCounter) = $this->iterateCollection($eventsCollection);
 
         $request->setLostRetrievedCounter($tokenFoundCounter);
         $request->setParsedValidCounter($tokenNotFoundCounter);
@@ -72,6 +50,53 @@ class HandleLostPaymentsAction implements ActionInterface, GatewayAwareInterface
         return
             $request instanceof HandleLostPayments
         ;
+    }
+
+    /**
+     * @param $request
+     *
+     * @return PollFullfilledPayments
+     */
+    private function fetchEventsCollection(HandleLostPayments $request): Collection
+    {
+        $eventsFilter = [];
+        if (!empty($request->getMinCtime())) {
+            $eventsFilter = [
+                'created' => [
+                    'gte' => strtotime($request->getMinCtime()),
+                ],
+            ];
+        }
+
+        $fullfilledPayements = new PollFullfilledPayments($eventsFilter);
+        $this->gateway->execute($fullfilledPayements);
+
+        return $fullfilledPayements->getEvents();
+    }
+
+    /**
+     * @param $request
+     * @param $eventsCollection
+     *
+     * @return array
+     */
+    private function iterateCollection($eventsCollection): array
+    {
+        $tokenFoundCounter = $tokenNotFoundCounter = 0;
+
+        $eventsIterator = $eventsCollection->autoPagingIterator();
+        foreach ($eventsIterator as $event) {
+            try {
+                $request = new handleCheckoutCompletedEvent($event, handleCheckoutCompletedEvent::TOKEN_CAN_BE_INVALIDATED);
+                $this->gateway->execute($request);
+                $tokenFoundCounter++;
+            } catch (TokenNotFound $e) {
+                //if this token is not found, it means that the payment was already processed, on a 100% working code we should always enter here
+                $tokenNotFoundCounter++;
+            }
+        }
+
+        return array($tokenNotFoundCounter, $tokenFoundCounter);
     }
 
 
