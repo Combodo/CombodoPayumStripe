@@ -74,7 +74,8 @@ class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayA
     public function supports($request)
     {
         return
-            $request instanceof Notify
+            $request instanceof Notify &&
+            $request->getModel() instanceof \ArrayAccess
         ;
     }
 
