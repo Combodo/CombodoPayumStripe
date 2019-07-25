@@ -114,21 +114,11 @@ class ObtainTokenAction implements ActionInterface, GatewayAwareInterface, ApiAw
         // - after : https://github.com/Payum/Payum/blob/master/docs/examples/done-script.md
         // in fact, there is also the possibility of a webhook : https://github.com/Payum/Payum/blob/master/docs/examples/notify-script.md
         $rawUrl = $request->getToken()->getTargetUrl();
-        $query = parse_url($rawUrl, PHP_URL_QUERY);
-        if ('' != $query) {
-            $separator = '&';
-        } else {
-            $separator = '?';
-        }
+        $separator = ObtainTokenAction::computeSeparator($rawUrl);
         $successUrl = "{$rawUrl}{$separator}checkout_status=completed";
 
         $rawUrl = $request->getToken()->getAfterUrl();
-        $query = parse_url($rawUrl, PHP_URL_QUERY);
-        if ('' != $query) {
-            $separator = '&';
-        } else {
-            $separator = '?';
-        }
+        $separator = ObtainTokenAction::computeSeparator($rawUrl);
         $cancelUrl  = "{$rawUrl}{$separator}checkout_status=canceled";
 
         $session = Session::create(
@@ -147,4 +137,21 @@ class ObtainTokenAction implements ActionInterface, GatewayAwareInterface, ApiAw
 
         return $session;
     }
+
+    /**
+     * @param string $rawUrl
+     *
+     * @return string
+     */
+    private static function computeSeparator(string $rawUrl): string
+    {
+        $query = parse_url($rawUrl, PHP_URL_QUERY);
+        if ('' != $query) {
+            $separator = '&';
+        } else {
+            $separator = '?';
+        }
+
+        return $separator;
+}
 }
