@@ -45,6 +45,7 @@ class StripeV3GatewayFactory extends GatewayFactory
             'payum.action.poll_fullfilled_payements' => new PollFullfilledPaymentsAction(), // custom action
             'payum.action.handle_lost_payements'     => new HandleLostPaymentsAction(),     // custom action
             'payum.action.chackout_completed'        => new CheckoutCompletedEventAction(), // custom action
+            'payum.action.refund'                    => new RefundAction(),
 
 
 
