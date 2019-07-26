@@ -43,7 +43,6 @@ class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInt
     public function setHttpRequestVerifier(HttpRequestVerifier $httpRequestVerifier)
     {
         $this->httpRequestVerifier = $httpRequestVerifier;
-        return $this;
     }
 
     /**
