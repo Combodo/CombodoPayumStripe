@@ -38,7 +38,7 @@ This may be a little cumbersome, you'll find how I did integrate this gateway wi
 Alas conventional data provided to Payum stripe checkout server require extra data: [line_items](https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-line_items).
 You'll have to give them to payum.
 
-> :bulb: When you use Sylius, you are already plugged in with hard coded values, my solution was to add an [extension that append those information](./payum-example/src/AppBundle/Payment/StripeV3RequirementsFulfillerOnCaptureExtensions.php) (do not forget to [tag the service](./payum-example/app/config/payum.yml)).
+> :bulb: When you use Sylius, you are already plugged in with hard coded values, my solution was to add an [extension that append those information](./payum-example/src/AppBundle/Payment/StripeV3RequirementsFulfillerOnCaptureExtensions.php) (do not forget to [tag the service](./app/config/payum.yml)).
 
 ## Listen to Payum changes of the payment state and trigger your own logic
 
