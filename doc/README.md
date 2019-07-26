@@ -6,8 +6,6 @@ The gateway available in this repository is meant to provide you an integration 
 In order to achieve this, you will have to follow those steps:
 
 
-In order to achieve this,
-
 # Installation
 
 ## Composer

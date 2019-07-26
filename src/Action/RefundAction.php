@@ -48,13 +48,24 @@ class RefundAction implements ActionInterface, ApiAwareInterface
             throw new LogicException('The amount is invalid.');
         }
         try {
-            Stripe::setApiKey($this->keys->getSecretKey());
-            $intent = \Stripe\PaymentIntent::retrieve($model['payment_intent_id']);
-            $intent->charges->data[0]->refund();
+            $this->refund($model);
             $model['refunded'] = true;
         } catch (Error\Base $e) {
             $model->replace([$e->getJsonBody()]);
         }
+    }
+
+    /**
+     * @param \ArrayAccess $model
+     *
+     * @return \Stripe\PaymentIntent
+     */
+    private function refund(\ArrayAccess $model)
+    {
+        Stripe::setApiKey($this->keys->getSecretKey());
+        $intent = \Stripe\PaymentIntent::retrieve($model['payment_intent_id']);
+        $intent->charges->data[0]->refund();
+        return $intent;
     }
 
     /**
