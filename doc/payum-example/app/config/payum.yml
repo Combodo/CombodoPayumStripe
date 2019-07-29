@@ -1,0 +1,23 @@
+# conf added in order to use https://github.com/Combodo/CombodoPayumStripe
+
+services:
+    stripe_checkout_v3:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments:
+            - Combodo\StripeV3\StripeV3GatewayFactory
+        tags:
+            - { name: payum.gateway_factory_builder, factory: stripe_checkout_v3 }
+
+    app.payment.payum.stripe.on_capture.fulfill_stripe_v3_requirements:
+        class: AppBundle\Payment\StripeV3RequirementsFulfillerOnCaptureExtensions
+        tags:
+            - { name: payum.extension, all: true, prepend: true}
+        public: true
+
+    app.payment.payum.stripe.on_notify.update_payment_state:
+        class: AppBundle\Payment\StripeV3UpdatePaymentStateOnCheckoutCompletedEvent
+        calls:
+            - { method: setHttpRequestVerifier, arguments: ['@=service("payum").getHttpRequestVerifier()']}
+        tags:
+            - { name: payum.extension, all: true, prepend: true}
+        public: true
