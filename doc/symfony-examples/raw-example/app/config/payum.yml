@@ -9,13 +9,13 @@ services:
             - { name: payum.gateway_factory_builder, factory: stripe_checkout_v3 }
 
     app.payment.payum.stripe.on_capture.fulfill_stripe_v3_requirements:
-        class: AppBundle\Payment\StripeV3RequirementsFulfillerOnCaptureExtensions
+        class: AppBundle\StripeV3\Extension\StripeV3PreparePaymentExtension
         tags:
             - { name: payum.extension, all: true, prepend: true}
         public: true
 
     app.payment.payum.stripe.on_notify.update_payment_state:
-        class: AppBundle\Payment\StripeV3UpdatePaymentStateOnCheckoutCompletedEvent
+        class: AppBundle\StripeV3\Extension\StripeV3ProcessPaymentExtension
         calls:
             - { method: setHttpRequestVerifier, arguments: ['@=service("payum").getHttpRequestVerifier()']}
         tags:
