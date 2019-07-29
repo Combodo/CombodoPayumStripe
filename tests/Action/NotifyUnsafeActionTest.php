@@ -8,6 +8,7 @@ use Combodo\StripeV3\Tests\invokeNonPublicMethodTrait;
 use Payum\Core\ApiAwareInterface;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayInterface;
+use Payum\Core\Request\Generic;
 use Payum\Core\Request\GetHttpRequest;
 use Payum\Core\Request\Notify;
 use Payum\Core\Tests\GenericActionTest;
@@ -194,5 +195,28 @@ class NotifyUnsafeActionTest extends GenericActionTest
         return $this->createMock(GatewayInterface::class);
     }
 
+    public function provideSupportedRequests()
+    {
+        return array(
+            array(new $this->requestClass(null)),
+        );
+    }
 
+    public function provideNotSupportedRequests()
+    {
+        return array(
+            array('foo'),
+            array(array('foo')),
+            array(new \stdClass()),
+            array(new $this->requestClass('foo')),
+            array(new $this->requestClass(new \stdClass())),
+            array($this->getMockForAbstractClass(Generic::class, array(array()))),
+
+            //normally, this should work, but this is not a standard action:
+            array(new $this->requestClass(new \ArrayObject())),
+            array(new $this->requestClass([])),
+        );
+    }
+
+    
 }

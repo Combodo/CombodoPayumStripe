@@ -69,13 +69,14 @@ class NotifyUnsafeAction implements ActionInterface, ApiAwareInterface, GatewayA
 
     
     /**
+     * Accepting null models is not standard, but it is required due to the implementation of the symfony bundle's route `payum_notify_do_unsafe`
      * {@inheritDoc}
      */
     public function supports($request)
     {
         return
             $request instanceof Notify &&
-            $request->getModel() instanceof \ArrayAccess
+            null === $request->getModel()
         ;
     }
 
