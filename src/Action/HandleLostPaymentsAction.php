@@ -19,7 +19,6 @@ use Payum\Core\Request\GetToken;
 use Payum\Core\Security\TokenInterface;
 use Stripe\Collection;
 use Stripe\Event;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class HandleLostPaymentsAction implements ActionInterface, GatewayAwareInterface
 {

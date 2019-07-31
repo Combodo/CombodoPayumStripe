@@ -22,7 +22,6 @@ use Payum\Core\Request\GetToken;
 use Payum\Core\Request\Notify;
 use Payum\Core\Security\TokenInterface;
 use Stripe\Event;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInterface, CheckoutCompletedInformationProvider
 {
@@ -91,7 +90,7 @@ class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInter
         $this->gateway->execute($status);
 
         if (empty($status->getValue())) {
-            throw new BadRequestHttpException('The payment status could not be fetched');
+            throw new LogicException('The payment status could not be fetched');
         }
 
         return $status;
