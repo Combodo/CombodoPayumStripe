@@ -4,7 +4,7 @@
  * Date: 08/08/18
  * Time: 15:12
  */
-namespace AppBundle\Payment;
+namespace App\Extension\StripeV3;
 
 
 use Payum\Core\Extension\Context;
@@ -31,7 +31,7 @@ use Payum\Core\Model\Payment;
  * @author Bruno DA SILVA
  * @author Valentin Corre
  */
-class StripeV3RequirementsFulfillerOnCaptureExtensions implements ExtensionInterface
+class StripeV3PreparePaymentExtension implements ExtensionInterface
 {
     /**
      * {@inheritdoc}
