@@ -109,7 +109,7 @@ class CheckoutCompletedEventActionTest extends TestCase
         //assertions over the action exposed methods & mutations
         $this->assertSame($tokenMock, $checkoutCompletedEventAction->getToken());
         $this->assertTrue($checkoutCompletedEventAction->getStatus()->isCaptured());
-        $this->assertSame(['checkout_session_id' => $eventObject->object->id, 'payment_intent_id' => $eventObject->object->payment_intent], $checkoutCompletedEventAction->getStatus()->getFirstModel()->getDetails());
+        $this->assertEquals(['checkout_session_id' => $eventObject->object->id, 'payment_intent_id' => $eventObject->object->payment_intent], $checkoutCompletedEventAction->getStatus()->getFirstModel()->getDetails());
     }
 
     public function dataProviderForTestExecutionWithinAGateway()

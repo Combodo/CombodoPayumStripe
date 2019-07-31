@@ -88,7 +88,7 @@ class NotifyUnsafeActionTest extends GenericActionTest
         $this->action->setGateway($gatewayMock);
         $this->action->setApi($apiMock);
 
-        $this->action->execute(new Notify([]));
+        $this->action->execute(new Notify(null));
     }
 
     /**
@@ -119,7 +119,7 @@ class NotifyUnsafeActionTest extends GenericActionTest
         $_SERVER['HTTP_STRIPE_SIGNATURE'] = 'foo';
 
         try {
-            $this->action->execute(new Notify([]));
+            $this->action->execute(new Notify(null));
         } catch (LogicException $exception) {
             $this->assertSame('Invalid signature', $exception->getMessage());
 
