@@ -120,17 +120,6 @@ class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInter
         return $this->token;
     }
 
-
-    public function getCheckoutSessionId(): ?string
-    {
-        return $this->checkoutSessionId;
-    }
-
-    public function getPaymentIntentId(): ?string
-    {
-        return $this->paymentIntentId;
-    }
-
     /**
      * {@inheritDoc}
      */

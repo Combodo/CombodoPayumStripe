@@ -9,14 +9,17 @@ namespace Combodo\StripeV3\Tests\Action\Api;
 
 
 use Combodo\StripeV3\Action\CheckoutCompletedEventAction;
+use Combodo\StripeV3\Model\StripePaymentDetails;
 use Combodo\StripeV3\Request\Api\ObtainToken;
 use Combodo\StripeV3\Request\handleCheckoutCompletedEvent;
 use Combodo\StripeV3\StripeV3GatewayFactory;
+use Combodo\StripeV3\Tests\invokeNonPublicMethodTrait;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\GatewayFactoryInterface;
 use Payum\Core\GatewayInterface;
 use Payum\Core\Model\Payment;
+use Payum\Core\Model\PaymentInterface;
 use Payum\Core\Request\GetBinaryStatus;
 use Payum\Core\Request\GetToken;
 use Payum\Core\Security\TokenInterface;
@@ -26,6 +29,7 @@ use Sylius\Bundle\PayumBundle\Request\GetStatus;
 
 class CheckoutCompletedEventActionTest extends TestCase
 {
+	use invokeNonPublicMethodTrait;
     /**
      * @test
      * @doesNotPerformAssertions
@@ -77,6 +81,57 @@ class CheckoutCompletedEventActionTest extends TestCase
 
     }
 
+	/**
+	 * @test
+	 */
+	public function completePaymentDetailsShouldUseInterfaceIfAvailable()
+	{
+		$mockStripePaymentDetails = $this->createMock(StripePaymentDetails::class);
+		$mockStripePaymentDetails
+			->expects($this->once())
+			->method('setCheckoutSessionId')
+		;
+		$mockStripePaymentDetails
+			->expects($this->once())
+			->method('setPaymentIntentId')
+		;
+		$checkoutCompletedEventAction = new CheckoutCompletedEventAction();
+
+		$this->invokeNonPublicMethod($checkoutCompletedEventAction, 'completePaymentDetails', [$mockStripePaymentDetails, 'checkout_session_id_42', 'payment_intent_id_007']);
+	}
+
+
+	/**
+	 * @test
+	 */
+	public function completePaymentDetailsShouldFallbackToDetails()
+	{
+
+		$checkoutSessionId = 'checkout_session_id_42';
+		$paymentIntentId = 'payment_intent_id_007';
+
+		$mockStripePaymentDetails = $this->createMock(PaymentInterface::class);
+		$mockStripePaymentDetails
+			->expects($this->atLeastOnce())
+			->method('getDetails')
+			->willReturn(['foo' => 'bar'])
+		;
+		$mockStripePaymentDetails
+			->expects($this->once())
+			->method('setDetails')
+			->with([
+				'foo'                   => 'bar',
+				'checkout_session_id'   => $checkoutSessionId,
+				'payment_intent_id'     => $paymentIntentId,
+			])
+		;
+		$checkoutCompletedEventAction = new CheckoutCompletedEventAction();
+
+	;
+
+		$this->invokeNonPublicMethod($checkoutCompletedEventAction, 'completePaymentDetails', [$mockStripePaymentDetails, $checkoutSessionId, $paymentIntentId]);
+	}
+
     /**
      * This test is overly complicated! Sorry :(
      *
@@ -111,6 +166,7 @@ class CheckoutCompletedEventActionTest extends TestCase
         $this->assertTrue($checkoutCompletedEventAction->getStatus()->isCaptured());
         $this->assertEquals(['checkout_session_id' => $eventObject->object->id, 'payment_intent_id' => $eventObject->object->payment_intent], $checkoutCompletedEventAction->getStatus()->getFirstModel()->getDetails());
     }
+
 
     public function dataProviderForTestExecutionWithinAGateway()
     {
@@ -159,6 +215,8 @@ class CheckoutCompletedEventActionTest extends TestCase
 
         ];
     }
+
+
 
     /**
      * @param $tokenMock
@@ -250,6 +308,7 @@ class CheckoutCompletedEventActionTest extends TestCase
 
         return $mockGateway;
     }
+
 
 
 }
