@@ -10,6 +10,7 @@ namespace Combodo\StripeV3\Action;
 
 use Combodo\StripeV3\Exception\TokenNotFound;
 use Combodo\StripeV3\Keys;
+use Combodo\StripeV3\Model\StripePaymentDetails;
 use Combodo\StripeV3\Request\handleCheckoutCompletedEvent;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Exception\LogicException;
@@ -23,7 +24,7 @@ use Payum\Core\Security\TokenInterface;
 use Stripe\Event;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInterface
+class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInterface, CheckoutCompletedInformationProvider
 {
     use GatewayAwareTrait;
 
@@ -31,12 +32,13 @@ class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInter
     private $status;
     /** @var TokenInterface $token  */
     private $token;
-    
+
     public function __construct()
     {
-        $this->status       = null;
-        $this->token        = null;
+        $this->status             = null;
+        $this->token              = null;
     }
+
 
     /**
      * {@inheritDoc}
@@ -58,16 +60,13 @@ class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInter
     {
         $checkoutSession    = $event->data->object;
         $tokenHash          = $checkoutSession->client_reference_id;
-        $checkoutSessionId  = $checkoutSession->id;
-        $paymentIntentId    = $checkoutSession->payment_intent;
 
         $this->token = $this->findTokenByHash($tokenHash);
         $this->status = $this->findStatusByToken($this->token);
 
         $this->status->markCaptured();
-        $payment = $this->status->getFirstModel();
 
-        $this->updatePayment($payment, $checkoutSessionId, $paymentIntentId);
+        $this->completePaymentDetails($this->status->getFirstModel(), $checkoutSession->id, $checkoutSession->payment_intent);
     }
 
     /**
@@ -98,42 +97,40 @@ class CheckoutCompletedEventAction implements ActionInterface, GatewayAwareInter
         return $status;
     }
 
-    /**
-     * Exposed in order to be accessible by payum extensions
-     *
-     * @see 
-     * 
-     * @return GetBinaryStatus|null
-     */
+    private function completePaymentDetails($payment, string $checkoutSessionId, string $paymentIntentId): void
+    {
+        if ($payment instanceof StripePaymentDetails) {
+            $payment->setCheckoutSessionId($checkoutSessionId);
+            $payment->setPaymentIntentId($paymentIntentId);
+        } else {
+            //if the Payment instance does not provide special setter, wee try to use the details, but this need extra work to be handled correctly (see the in the symfony examples)
+            $details = $payment->getDetails();
+            $details['checkout_session_id'] = $checkoutSessionId;
+            $details['payment_intent_id']   = $paymentIntentId;
+            $payment->setDetails($details);
+        }
+    }
+
     public function getStatus() :?GetBinaryStatus
     {
         return $this->status;
     }
 
-    /**
-     * Exposed in order to be accessible by payum extensions
-     *
-     * @see
-     * null|TokenInterface
-     */
     public function getToken() : ?TokenInterface
     {
         return $this->token;
     }
 
 
-    /**
-     * @param $payment
-     * @param $checkoutSession
-     */
-    private function updatePayment($payment, $checkoutSessionId, $paymentIntentId): void
+    public function getCheckoutSessionId(): ?string
     {
-        $details = $payment->getDetails();
-        $details['checkout_session_id'] = $checkoutSessionId;
-        $details['payment_intent_id']   = $paymentIntentId;
-        $payment->setDetails($details);
+        return $this->checkoutSessionId;
     }
 
+    public function getPaymentIntentId(): ?string
+    {
+        return $this->paymentIntentId;
+    }
 
     /**
      * {@inheritDoc}
