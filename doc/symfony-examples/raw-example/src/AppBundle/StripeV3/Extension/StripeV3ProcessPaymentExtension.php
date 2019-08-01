@@ -1,7 +1,7 @@
 <?php
 
 
-namespace AppBundle\Payment;
+namespace AppBundle\StripeV3\Extension;
 
 
 use Combodo\StripeV3\Action\CheckoutCompletedEventAction;
@@ -30,7 +30,7 @@ use Payum\Core\Model\Payment;
  * @author Valentin Corre
  *
  */
-class StripeV3UpdatePaymentStateOnCheckoutCompletedEvent implements ExtensionInterface
+class StripeV3ProcessPaymentExtension implements ExtensionInterface
 {
     /** @var HttpRequestVerifier */
     private $httpRequestVerifier;

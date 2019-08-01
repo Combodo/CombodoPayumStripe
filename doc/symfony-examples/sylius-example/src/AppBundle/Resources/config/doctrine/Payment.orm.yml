@@ -1,0 +1,14 @@
+AppBundle\Entity\Payment:
+  type: entity
+  table: sylius_payment
+
+  fields:
+    checkoutSessionId:
+      type:     string
+      length:   100
+      nullable: true
+
+    paymentIntentId:
+      type:     string
+      lenght:   100
+      nullable: true
