@@ -39,100 +39,100 @@ use Sylius\Component\Core\Model\PaymentInterface as SyliusPaymentInterface;
  */
 class StripeV3RequirementsFulfillerOnCaptureExtensions implements ExtensionInterface
 {
-    /** @var string  */
-    private $providerName;
-    /**
-     * @var CacheManager
-     */
-    private $cacheManager;
-    /**
-     * @var string
-     */
-    private $liipImagineFilterName;
+	/** @var string  */
+	private $providerName;
+	/**
+	 * @var CacheManager
+	 */
+	private $cacheManager;
+	/**
+	 * @var string
+	 */
+	private $liipImagineFilterName;
 
-    public function __construct(string $providerName, CacheManager $cacheManager, string $liipImagineFilterName)
-    {
-        $this->providerName = $providerName;
-        $this->cacheManager = $cacheManager;
-        $this->liipImagineFilterName = $liipImagineFilterName;
-    }
+	public function __construct(string $providerName, CacheManager $cacheManager, string $liipImagineFilterName)
+	{
+		$this->providerName = $providerName;
+		$this->cacheManager = $cacheManager;
+		$this->liipImagineFilterName = $liipImagineFilterName;
+	}
 
-    /**
-     * @var Context $context
-     */
-    public function onPreExecute(Context $context)
-    {
-        //do nothing
-    }
+	/**
+	 * @var Context $context
+	 */
+	public function onPreExecute(Context $context)
+	{
+		//do nothing
+	}
 
-    /**
-     * @var Context $context
-     */
-    public function onExecute(Context $context)
-    {
-        if (! $this->supports($context)) {
-            return;
-        }
+	/**
+	 * @var Context $context
+	 */
+	public function onExecute(Context $context)
+	{
+		if (! $this->supports($context)) {
+			return;
+		}
 
-        /** @var Capture $request */
-        $request = $context->getRequest();
+		/** @var Capture $request */
+		$request = $context->getRequest();
 
-        /** @var SyliusPaymentInterface $payment */
-        $payment = $request->getModel();
+		/** @var SyliusPaymentInterface $payment */
+		$payment = $request->getModel();
 
-        /** @var Order $order */
-        $order = $payment->getOrder();
+		/** @var Order $order */
+		$order = $payment->getOrder();
 
-        $context->getGateway()->execute($status = new GetStatus($payment));
-        if (! $status->isNew()) {
-            return;
-        }
+		$context->getGateway()->execute($status = new GetStatus($payment));
+		if (! $status->isNew()) {
+			return;
+		}
 
-        /** @var array $paymentDetails */
-        $paymentDetails = $payment->getDetails();
+		/** @var array $paymentDetails */
+		$paymentDetails = $payment->getDetails();
 
 //        if (isset($paymentDetails['line_items'])) {
 //            throw new \LogicException('Attempting to initialize an already initialized stripe\'s line_items');
 //        }
-        $paymentDetails['line_items'] = [];
+		$paymentDetails['line_items'] = [];
 
-        /** @var OrderItem $item */
-        foreach ($order->getItems() as $item) {
-            $imageUrl = $this->cacheManager->generateUrl(
-                $item->getProduct()->getImages()->first()->getPath(),
-                $this->liipImagineFilterName
-            );
-            $paymentDetails['line_items'][] = [
-                'name'      => $item->getVariantName(),
-                'amount'    => $item->getUnitPrice(),
-                'currency'  => $order->getCurrencyCode(),
-                'quantity'  => $item->getQuantity(),
+		/** @var OrderItem $item */
+		foreach ($order->getItems() as $item) {
+			$imageUrl = $this->cacheManager->generateUrl(
+				$item->getProduct()->getImages()->first()->getPath(),
+				$this->liipImagineFilterName
+			);
+			$paymentDetails['line_items'][] = [
+				'name'      => $item->getVariantName(),
+				'amount'    => $item->getUnitPrice(),
+				'currency'  => $order->getCurrencyCode(),
+				'quantity'  => $item->getQuantity(),
 //                'images'    => $item->getProduct()->getImages()->map(function (ImageInterface $image) { return $this->cacheManager->generateUrl($image->getPath(), $this->liipImagineFilterName); })->toArray(),
-                'images'    => [$imageUrl],
-                'description'=> $item->getProduct()->getShortDescription(),
-            ];
-        }
+				'images'    => [$imageUrl],
+				'description'=> $item->getProduct()->getShortDescription(),
+			];
+		}
 
 
-        $payment->setDetails($paymentDetails);
-    }
+		$payment->setDetails($paymentDetails);
+	}
 
-    /**
-     * @var Context $context
-     */
-    public function onPostExecute(Context $context)
-    {
-        //do nothing
-    }
+	/**
+	 * @var Context $context
+	 */
+	public function onPostExecute(Context $context)
+	{
+		//do nothing
+	}
 
-    public function supports($context)
-    {
-        /** @var $request Capture */
-        $request = $context->getRequest();
+	public function supports($context)
+	{
+		/** @var $request Capture */
+		$request = $context->getRequest();
 
-        return
-            $request instanceof Capture &&
-            $request->getModel() instanceof SyliusPaymentInterface
-            ;
-    }
+		return
+			$request instanceof Capture &&
+			$request->getModel() instanceof SyliusPaymentInterface
+			;
+	}
 }
