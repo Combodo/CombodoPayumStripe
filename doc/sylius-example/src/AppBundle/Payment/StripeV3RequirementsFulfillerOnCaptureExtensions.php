@@ -91,28 +91,9 @@ class StripeV3RequirementsFulfillerOnCaptureExtensions implements ExtensionInter
         /** @var array $paymentDetails */
         $paymentDetails = $payment->getDetails();
 
-//        if (isset($paymentDetails['line_items'])) {
-//            throw new \LogicException('Attempting to initialize an already initialized stripe\'s line_items');
-//        }
-        $paymentDetails['line_items'] = [];
+        $paymentDetails = $this->appendLineItems($paymentDetails, $order);
 
-        /** @var OrderItem $item */
-        foreach ($order->getItems() as $item) {
-            $imageUrl = $this->cacheManager->generateUrl(
-                $item->getProduct()->getImages()->first()->getPath(),
-                $this->liipImagineFilterName
-            );
-            $paymentDetails['line_items'][] = [
-                'name'      => $item->getVariantName(),
-                'amount'    => $item->getUnitPrice(),
-                'currency'  => $order->getCurrencyCode(),
-                'quantity'  => $item->getQuantity(),
-//                'images'    => $item->getProduct()->getImages()->map(function (ImageInterface $image) { return $this->cacheManager->generateUrl($image->getPath(), $this->liipImagineFilterName); })->toArray(),
-                'images'    => [$imageUrl],
-                'description'=> $item->getProduct()->getShortDescription(),
-            ];
-        }
-
+        $paymentDetails = $this->appendCustomerEmail($order, $paymentDetails);
 
         $payment->setDetails($paymentDetails);
     }
@@ -134,5 +115,48 @@ class StripeV3RequirementsFulfillerOnCaptureExtensions implements ExtensionInter
             $request instanceof Capture &&
             $request->getModel() instanceof SyliusPaymentInterface
             ;
+    }
+
+    /**
+     * @param array $paymentDetails
+     * @param Order $order
+     * @return array
+     */
+    private function appendLineItems(array $paymentDetails, Order $order): array
+    {
+        $paymentDetails['line_items'] = [];
+
+        /** @var OrderItem $item */
+        foreach ($order->getItems() as $item) {
+            $imageUrl = $this->cacheManager->generateUrl(
+                $item->getProduct()->getImages()->first()->getPath(),
+                $this->liipImagineFilterName
+            );
+            $paymentDetails['line_items'][] = [
+                'name' => $item->getVariantName(),
+                'amount' => $item->getDiscountedUnitPrice(),
+                'currency' => $order->getCurrencyCode(),
+                'quantity' => $item->getQuantity(),
+                'images' => [$imageUrl],
+                'description' => $item->getProduct()->getShortDescription(),
+            ];
+        }
+
+        return $paymentDetails;
+    }
+
+    /**
+     * @param Order $order
+     * @param array $paymentDetails
+     * @return array
+     */
+    private function appendCustomerEmail(Order $order, array $paymentDetails): array
+    {
+        $email = $order->getCustomer()->getEmail();
+        if (! empty($email)) {
+            $paymentDetails['customer_email'] = $email;
+        }
+
+        return $paymentDetails;
     }
 }
