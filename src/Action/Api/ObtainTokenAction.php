@@ -132,6 +132,10 @@ class ObtainTokenAction implements ActionInterface, GatewayAwareInterface, ApiAw
             $params['customer_email'] = $model['customer_email'];
         }
 
+        if (isset($model['payment_intent_data'])) {
+            $params['payment_intent_data'] = array_merge($params['payment_intent_data'], $model['payment_intent_data']);
+        }
+
         $session = Session::create($params);
 
         return $session;
