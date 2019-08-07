@@ -30,14 +30,27 @@ services:
         public: true
 
     app.payment.payum.stripe.on_capture.fulfill_stripe_v3_requirements:
-        class: AppBundle\Payment\StripeV3RequirementsFulfillerOnCaptureExtensions
+        class: AppBundle\Payment\StripeV3OnCaptureExtensions
+        arguments:
+            - '@app.payment.payum.stripe.on_capture.append_line_items_detailled'
+            - '@app.payment.payum.stripe.on_capture.append_line_items_into_single_line'
+        tags:
+            - { name: payum.extension, all: true, prepend: true}
+        public: true
+
+    app.payment.payum.stripe.on_capture.append_line_items_into_single_line:
+        class: AppBundle\Payment\StripeV3LineItemsAppendIntoSingleLine
         arguments:
             - 'itop_hub'
             - '@liip_imagine.cache.manager'
             - 'sylius_shop_product_thumbnail'
-        tags:
-            - { name: payum.extension, all: true, prepend: true}
-        public: true
+
+    app.payment.payum.stripe.on_capture.append_line_items_detailled:
+        class: AppBundle\Payment\StripeV3LineItemsAppendDetailled
+        arguments:
+            - 'itop_hub'
+            - '@liip_imagine.cache.manager'
+            - 'sylius_shop_product_thumbnail'
 
     app.payment.payum.stripe.on_notify.update_payment_state:
         class: AppBundle\Payment\StripeV3UpdatePaymentStateOnCheckoutCompletedEvent

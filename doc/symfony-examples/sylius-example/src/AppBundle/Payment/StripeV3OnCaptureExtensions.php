@@ -37,30 +37,31 @@ use Sylius\Component\Core\Model\PaymentInterface as SyliusPaymentInterface;
  *
  * @author Bruno DA SILVA
  */
-class StripeV3RequirementsFulfillerOnCaptureExtensions implements ExtensionInterface
+class StripeV3OnCaptureExtensions implements ExtensionInterface
 {
-    /** @var string  */
-    private $providerName;
-    /**
-     * @var CacheManager
-     */
-    private $cacheManager;
-    /**
-     * @var string
-     */
-    private $liipImagineFilterName;
 
-    public function __construct(string $providerName, CacheManager $cacheManager, string $liipImagineFilterName)
+
+    /**
+     * @var StripeV3LineItemsAppendDetailled
+     */
+    private $detailled;
+    /**
+     * @var StripeV3LineItemsAppendIntoSingleLine
+     */
+    private $singleLine;
+
+    public function __construct(StripeV3LineItemsAppendDetailled $detailled, StripeV3LineItemsAppendIntoSingleLine $singleLine)
     {
-        $this->providerName = $providerName;
-        $this->cacheManager = $cacheManager;
-        $this->liipImagineFilterName = $liipImagineFilterName;
+        $this->detailled = $detailled;
+        $this->singleLine = $singleLine;
     }
 
-    /**
-     * @var Context $context
-     */
     public function onPreExecute(Context $context)
+    {
+        //do nothing
+    }
+
+    public function onPostExecute(Context $context)
     {
         //do nothing
     }
@@ -98,14 +99,6 @@ class StripeV3RequirementsFulfillerOnCaptureExtensions implements ExtensionInter
         $payment->setDetails($paymentDetails);
     }
 
-    /**
-     * @var Context $context
-     */
-    public function onPostExecute(Context $context)
-    {
-        //do nothing
-    }
-
     public function supports($context)
     {
         /** @var $request Capture */
@@ -118,32 +111,27 @@ class StripeV3RequirementsFulfillerOnCaptureExtensions implements ExtensionInter
     }
 
     /**
+     * return the payment details completed with the line_items.
+     *
+     * Stripe has a limitation: it cannot handle order level promotions (and it refuses negative amount for the line_items).
+     * So if there are so, the code fallback on the whole order into one single line_items
+     *
      * @param array $paymentDetails
      * @param Order $order
      * @return array
      */
     private function appendLineItems(array $paymentDetails, Order $order): array
     {
-        $paymentDetails['line_items'] = [];
-
-        /** @var OrderItem $item */
-        foreach ($order->getItems() as $item) {
-            $imageUrl = $this->cacheManager->generateUrl(
-                $item->getProduct()->getImages()->first()->getPath(),
-                $this->liipImagineFilterName
-            );
-            $paymentDetails['line_items'][] = [
-                'name' => $item->getVariantName(),
-                'amount' => $item->getDiscountedUnitPrice(),
-                'currency' => $order->getCurrencyCode(),
-                'quantity' => $item->getQuantity(),
-                'images' => [$imageUrl],
-                'description' => $item->getProduct()->getShortDescription(),
-            ];
+        $orderPromotionTotal = $order->getOrderPromotionTotal();
+        if ($orderPromotionTotal != 0) {
+            return $this->singleLine->appendLineItems($paymentDetails, $order);
         }
 
-        return $paymentDetails;
+        return $this->detailled->appendLineItems($paymentDetails, $order);
     }
+
+
+
 
     /**
      * @param Order $order
