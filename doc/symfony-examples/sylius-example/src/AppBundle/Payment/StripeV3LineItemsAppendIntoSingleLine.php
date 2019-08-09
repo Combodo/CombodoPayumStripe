@@ -93,14 +93,14 @@ class StripeV3LineItemsAppendIntoSingleLine
                 $order->getPromotionCoupon()->getCode(),
                 round($order->getOrderPromotionTotal() / 100, 2)
             );
-        } if ($order->getOrderPromotionTotal() != 0) {
-        $promotion = sprintf(
-            "\n, including a promotion of %s€",
-            round($order->getOrderPromotionTotal() / 100, 2)
-        );
-    } else {
-        $promotion = '';
-    }
+        } elseif ($order->getOrderPromotionTotal() != 0) {
+            $promotion = sprintf(
+                "\n, including a promotion of %s€",
+                round($order->getOrderPromotionTotal() / 100, 2)
+            );
+        } else {
+            $promotion = '';
+        }
 
         $description = sprintf(
             "%d extensions: \n%s%s",
