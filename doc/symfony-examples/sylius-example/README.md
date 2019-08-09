@@ -37,23 +37,33 @@ See the service tagged both `sylius.gateway_configuration_type` and `form.type` 
 ## Fulfill Stripe Checkout server requirements
 
 Alas conventional data provided to Payum stripe checkout server require extra data: [line_items](https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-line_items).
-You'll have to give them to payum.
+You'll have to give them to payum:
 
-> :bulb: When you use Sylius, you are already plugged in with hard coded values, my solution was to add an [extension that append those information](./src/AppBundle/Payment/StripeV3RequirementsFulfillerOnCaptureExtensions.php) (do not forget to [tag the service](./app/config/payum.yml)).
+This is the role of : [StripeV3OnCaptureExtensions](./src/AppBundle/Payment/StripeV3OnCaptureExtensions.php) 
+
+:bulb: do not forget to 
+- implement the services it depend upon ([StripeV3LineItemsAppendDetailled](./src/AppBundle/Payment/StripeV3LineItemsAppendDetailled.php), [StripeV3LineItemsAppendIntoSingleLine](./src/AppBundle/Payment/StripeV3LineItemsAppendIntoSingleLine.php)),  
+- [declare and tag all those services](./app/config/payum.yml),
+- **adapt** the code to **your own** logic (_seriously I mean it: read this code and adapt it!_)
 
 ## Listen to Payum changes of the payment state and trigger your own logic
 
 Once the payment is confirmed, you probably want to trigger a workflow.
 
-> :bulb: When you use Sylius, you are already plugged in with hard coded values, my solution was to add an [extension that trigger the state machine change when needed](./src/AppBundle/Payment/StripeV3UpdatePaymentStateOnCheckoutCompletedEvent.php) (do not forget to [tag the service](./app/config/payum.yml)).
+This is the role of : [StripeV3UpdatePaymentStateOnCheckoutCompletedEvent](./src/AppBundle/Payment/StripeV3UpdatePaymentStateOnCheckoutCompletedEvent.php) to trigger the state machine change when needed.
+
+:bulb: do not forget to 
+- [tag the service](./app/config/payum.yml),
+- **adapt** the code to **your own** logic  
+
 
 ### Implementation details
 
 This gateway provide three different methods to retrieve payments
 
--   a check when the user is redirected after payment
--   a webhook
--   the base of a command that should be called by a scheduled task
+- a check when the user is redirected after payment
+- a webhook
+- the base of a command that should be called by a scheduled task
 
 Every three implementations execute a request `handleCheckoutCompletedEvent` handled by `CheckoutCompletedEventAction`.
 
@@ -63,16 +73,18 @@ Every three implementations execute a request `handleCheckoutCompletedEvent` han
 ### optionally: store stripes transaction identifiers 
 If you need to store Stripe's transaction identifier inside the Payment entity, you have two solutions:
 
-make your own entity implement `StripePaymentDetails` so you can store here werever you want.
+make your own entity implement `StripePaymentDetails` so you can store here wherever you want.
 > example: [Payment.php](./src/AppBundle/Entity/Payment.php), [Payment.orm.yml](./src/AppBundle/Resources/config/doctrine/Payment.orm.yml).
  
-If you do not implement `StripePaymentDetails`, the code will try to write the identifiers into the details. Sadly, Payum erases those
- changes. But you may uses the Payment state machine to read those changes and store them elsewere 
- > there are no example for this use case, if you folow it, please help us with a PR improving this doc! 
+If you do not implement `StripePaymentDetails`, the code will try to write the identifiers into the details. Sadly, Payum erases those 
+changes. But you may uses the Payment state machine to read those changes and store them elsewhere 
+
+:bulb: there are no example for this use case, if you follow it, please help us with a PR improving this doc! 
 
 ## Redirect after payment
 
-> :scream: Attention: while being the simpler to implement (and the only one available without extra work), this solution alone is really not sufficient. You must at least complete it with the cron.
+:scream: Attention: this solution alone is really not sufficient. You must at least complete it with the cron!
+
 
 ## Using the webhook
 
