@@ -88,14 +88,19 @@ class StripeV3LineItemsAppendIntoSingleLine
         }
 
         if ($order->getPromotionCoupon() && !empty($order->getPromotionCoupon()->getCode())) {
-                $promotion = sprintf(
+            $promotion = sprintf(
                 "\n, including promotion: %s (%s€)",
                 $order->getPromotionCoupon()->getCode(),
-                    round($order->getOrderPromotionTotal() / 100, 2)
+                round($order->getOrderPromotionTotal() / 100, 2)
             );
-        } else {
-            $promotion = '';
-        }
+        } if ($order->getOrderPromotionTotal() != 0) {
+        $promotion = sprintf(
+            "\n, including a promotion of %s€",
+            round($order->getOrderPromotionTotal() / 100, 2)
+        );
+    } else {
+        $promotion = '';
+    }
 
         $description = sprintf(
             "%d extensions: \n%s%s",
