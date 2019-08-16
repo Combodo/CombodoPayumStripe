@@ -31,7 +31,7 @@ class HandleLostPayments
 
     public function setLostRetrievedCounter(int $tokenFoundCounter): void
     {
-        $this->tokenFoundCounter;
+        $this->tokenFoundCounter = $tokenFoundCounter;
     }
 
     public function getMinCtime(): ?string
