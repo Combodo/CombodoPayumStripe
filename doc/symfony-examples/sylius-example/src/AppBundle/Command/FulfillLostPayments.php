@@ -17,10 +17,24 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Routing\RouterInterface;
 
 class FulfillLostPayments extends Command
 {
     const MIN_CTIME = '-1 day';
+    /**
+     * @var string ENV_HOST_PROVIDER The env var name containing the host of your store.
+     * As this command run in a CLI env. Your host cannot be automatically computed as usually from the http request
+     * **YOU DEFINITELY NEED TO OVERWRITE THIS VALUE**
+     */
+    const ENV_HOST_PROVIDER = 'APP_STORE_HOST';
+    /**
+     * @var int ENV_HTTPS_PROVIDER whether https is in use or not
+     * As this command run in a CLI env. Your host cannot be automatically computed as usually from the http request
+     * **YOU DEFINITELY NEED TO OVERWRITE THIS VALUE**
+     */
+    const ENV_HTTPS_PROVIDER = 'ENABLE_HTTPS';
+
     // the name of the command (the part after "bin/console")
     protected static $defaultName = 'payum:stripev3:fulfill-lost-payments';
     /**
@@ -31,13 +45,18 @@ class FulfillLostPayments extends Command
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var RouterInterface
+     */
+    private $router;
 
-    public function __construct(Payum $payum, LoggerInterface $logger)
+    public function __construct(Payum $payum, LoggerInterface $logger, RouterInterface $router)
     {
         parent::__construct(static::$defaultName);
 
         $this->payum  = $payum;
         $this->logger = $logger;
+        $this->router = $router;
     }
 
     protected function configure()
@@ -59,6 +78,8 @@ class FulfillLostPayments extends Command
         $message = sprintf('starting %s for gateway "%s"', $this->getName(), $gatewayName);
         $io->title($message);
 
+        $this->force_request_context();
+
         $gateway = $this->payum->getGateway($gatewayName);
 
         $minCtime = $input->getOption('min_ctime');
@@ -66,12 +87,40 @@ class FulfillLostPayments extends Command
         $gateway->execute($request);
 
         $message = sprintf(
-            'Found %d lost payments and %d already processed ones',
+            '%s Found %d lost payments and %d already processed ones',
+            date('Y-m-d H:i:s'),
             $request->getLostRetrievedCounter(),
             $request->getParsedValidCounter()
         );
 
         $this->logger->info($message);
         $io->comment($message);
+    }
+
+    /**
+     * Enforce scheme and host into the router
+     * As this command run in a CLI env. Your host cannot be automatically computed as usually from the http request
+     *
+     * Note: this code rely on env vars, but you could easily rely on a specific command line arguments combined with parse_url ;p
+     */
+    protected function force_request_context(): void
+    {
+        if (isset($forceRequestContext)) {
+            $context = $this->router->getContext();
+
+            if ($enableHttps = getenv(static::ENV_HTTPS_PROVIDER)) {
+                if ('true' == $enableHttps) {
+                    $context->setScheme('https');
+                } else {
+                    $context->setScheme('http');
+                }
+            }
+
+            if ($host = getenv(static::ENV_HOST_PROVIDER)) {
+                $context->setHost($host);
+            }
+
+            $this->router->setContext($context);
+        }
     }
 }
