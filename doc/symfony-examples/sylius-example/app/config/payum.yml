@@ -69,5 +69,6 @@ services:
         arguments:
             - '@payum'
             - '@logger'
+            - '@router'
         tags:
             - {name: 'console.command'}
