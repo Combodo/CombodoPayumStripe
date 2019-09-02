@@ -1,6 +1,6 @@
 # Payum gateway : Combodo/StripeV3
 
-This is an **unofficial** & :construction: Beta :construction: Payum gateway providing a stripe integration compatible with the [Strong
+This is an **unofficial** Payum gateway providing a stripe integration compatible with the [Strong
  Customer Authentication](https://stripe.com/docs/strong-customer-authentication) also known as `SCA`. 
  Official Payum's gateway are not compatible with this new european regulation.
   
