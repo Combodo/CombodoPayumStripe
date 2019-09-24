@@ -10,22 +10,22 @@ namespace Combodo\StripeV3\Model;
 interface StripePaymentDetails
 {
     /**
-     * @return string
+     * @return string|null
      */
-    public function getCheckoutSessionId(): string;
+    public function getCheckoutSessionId(): ?string;
 
     /**
      * @param string $checkoutSessionId
      */
-    public function setCheckoutSessionId(string $checkoutSessionId): void;
+    public function setCheckoutSessionId(?string $checkoutSessionId): void;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPaymentIntentId(): string;
+    public function getPaymentIntentId(): ?string;
 
     /**
      * @param string $paymentIntentId
      */
-    public function setPaymentIntentId(string $paymentIntentId): void;
+    public function setPaymentIntentId(?string $paymentIntentId): void;
 }
