@@ -9,8 +9,8 @@ This may be a little cumbersome, but hey, we've got your back: the next steps wi
 This page is meant to guide you through the integration of this gateway into Sylius.
 If you do not use sylius, please go back to the [root documentation](../../)
 
-> :bangbang: beware: I tested it on my own highly customized sylius 1.2!
-> Thus I had some feedback of person having integrated it on sylius 1.5, I haven't' tested it myself, and maybe you'll need extra work to make it work under your own configuration!
+> :bangbang: beware: I tested it on my own highly customized sylius (1.2 and 1.6)!
+> Thus I had some feedback of person having integrated it on other sylius verions, I haven't' tested it myself, and maybe you'll need extra work to make it work under your own configuration!
 
 
 
